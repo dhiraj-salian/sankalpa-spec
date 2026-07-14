@@ -1,6 +1,6 @@
 # Book 10 — Experience
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: realizes P5, P10, P13.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: realizes P5, P10, P13.*
 
 ## Scope
 Experience as a first-class citizen: every Execution produces an Experience record, and Experience feeds back into Knowledge and future planning — closing the loop that drives the system toward determinism.
