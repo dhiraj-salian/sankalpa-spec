@@ -1,6 +1,6 @@
 # Book 03 — The Kernel
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: ADR-0002; realizes principles P4, P5, P11.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: ADR-0002; realizes principles P4, P5, P11.*
 
 ## Scope
 The microkernel: the small trusted core that owns orchestration and enforces the invariants. Defines the Managers, the Kernel API, and the Event Bus — the two (and only two) communication substrates.
