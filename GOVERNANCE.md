@@ -1,0 +1,62 @@
+# Governance
+
+*Status: Draft · Applies to: the whole project · Owner: Steering Council*
+
+This document defines how decisions are made in Sankalpa. It is deliberately modeled on the governance of long-lived open-source projects (Rust RFCs, Kubernetes SIGs/KEPs, Python PEPs, the IETF rough-consensus tradition) and adapted to a **specification-first** project.
+
+## 1. Guiding principles
+
+1. **Specification-first.** Architecture precedes implementation. A change to *how Sankalpa works* is a change to this repository first, and to code second. See [ADR-0001](adrs/0001-specification-first-development.md).
+2. **Conceptual integrity over feature count.** A coherent system that does less beats an incoherent system that does more. Maintainers are stewards of coherence.
+3. **Rough consensus, documented dissent.** We seek broad agreement, not unanimity. Dissent is recorded, not erased.
+4. **Everything is reversible except where we say it is not.** Stability guarantees are explicit ([`process/versioning-and-stability.md`](process/versioning-and-stability.md)); everything else may evolve.
+5. **The record outlives the decision.** ADRs and RFCs are append-only history. We supersede; we do not silently rewrite.
+
+## 2. Roles
+
+| Role | Who | Authority |
+|------|-----|-----------|
+| **Contributor** | Anyone who opens an issue, RFC, or PR. | Propose; comment; implement. |
+| **Reviewer** | Contributors trusted in a specific area. | Approve changes within their area of expertise. |
+| **Maintainer** | Long-term stewards of one or more Books/subsystems. | Merge; assign status transitions; shepherd RFCs. |
+| **Domain Lead** | The accountable maintainer for a Book/subsystem (Kernel, Compiler, Security, …). | Final call within their domain; breaks review ties. |
+| **Steering Council** | Small odd-numbered body of Domain Leads + elected members. | Cross-cutting decisions; conflict resolution; roadmap; amending this document. |
+
+Roles are earned through sustained, high-quality contribution and are listed in [`MAINTAINERS.md`](MAINTAINERS.md). No role is permanent; inactivity leads to emeritus status.
+
+## 3. Decision instruments
+
+| Instrument | Use it for | Lifecycle |
+|-----------|-----------|-----------|
+| **ADR** (Architecture Decision Record) | A single decision and its rationale. Short, immutable. | [`process/adr-process.md`](process/adr-process.md) |
+| **RFC** (Request for Comments) | A substantial design spanning multiple decisions or subsystems. | [`process/rfc-process.md`](process/rfc-process.md) |
+| **AEP** (Architecture Extension Proposal) | Defining or evolving a public extension contract (planner/runtime/compiler/package/channel APIs). | [`process/aep-process.md`](process/aep-process.md) |
+| **Spec change** | Editing normative Book text. Must reference an Accepted RFC or ADR. | via PR + review gates |
+| **Editorial change** | Typos, formatting, non-normative clarifications. | Lightweight PR, single maintainer approval. |
+
+**Rule of thumb:** *One decision → ADR. A design containing many decisions → RFC (which spawns ADRs). A promise to third parties about an interface → AEP.*
+
+## 4. The decision lifecycle
+
+```
+Idea → Draft (RFC/ADR/AEP) → Proposed → Review + Final Comment Period → Accepted → Reflected in spec/
+                                    │
+                                    └── Rejected / Withdrawn / Deferred (recorded, not deleted)
+```
+
+- **Final Comment Period (FCP):** Once a Domain Lead believes consensus is near, they call a **10-working-day FCP** with a disposition (accept / reject / postpone). Silence during FCP is assent. A single Steering Council member may extend or escalate.
+- **Consensus test:** Accepted requires (a) approval from the owning Domain Lead, (b) at least two Reviewer approvals, (c) no unresolved *blocking* objection. A blocking objection must state a concrete technical harm, not a preference.
+
+## 5. Review gates
+
+No normative change merges without passing the applicable gates in [`process/review-gates.md`](process/review-gates.md): Architecture, Security, Performance, Testability, Documentation, Backward-Compatibility, and Migration. Gates scale with impact — an editorial fix clears them trivially; a new IR opcode does not.
+
+## 6. Conflict resolution
+
+1. Discuss in the RFC/PR thread.
+2. Escalate to the Domain Lead.
+3. Escalate to the Steering Council, which decides by simple majority. The Council *documents its reasoning* in an ADR.
+
+## 7. Amending governance
+
+This document is amended only by RFC, a 15-working-day FCP, and a two-thirds Steering Council supermajority. Amendments are announced project-wide.

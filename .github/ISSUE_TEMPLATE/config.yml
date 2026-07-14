@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion / early idea
+    url: https://example.invalid/sankalpa-spec/discussions
+    about: Socialize an idea before writing an RFC/ADR/AEP.
+  - name: Security design flaw
+    url: https://example.invalid/sankalpa-spec/blob/main/SECURITY.md
+    about: Do not open a public issue. Follow the security policy.
+  - name: Code of Conduct
+    url: https://example.invalid/sankalpa-spec/blob/main/CODE_OF_CONDUCT.md
+    about: How we work together.

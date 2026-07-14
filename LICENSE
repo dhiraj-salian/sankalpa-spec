@@ -1,0 +1,30 @@
+Sankalpa Specification — Licensing
+==================================
+
+This repository contains two kinds of material under two licenses. The split
+is intentional and is recorded in ADR-0003.
+
+1. SPECIFICATION TEXT (prose in spec/, rfcs/, adrs/, aeps/, process/, research/,
+   and all Markdown documentation) is licensed under:
+
+       Creative Commons Attribution 4.0 International (CC BY 4.0)
+       https://creativecommons.org/licenses/by/4.0/
+
+   You may share and adapt the text for any purpose, provided you give
+   appropriate credit to the Sankalpa project.
+
+2. CODE SAMPLES, SCHEMAS, TEMPLATES, and DIAGRAM SOURCES (fenced code blocks,
+   files under templates/ and diagrams/src/, and any example configuration) are
+   licensed under:
+
+       Apache License, Version 2.0
+       https://www.apache.org/licenses/LICENSE-2.0
+
+   A NOTICE file will accompany released implementation artifacts.
+
+Rationale: prose deserves a documentation license optimized for attribution and
+reuse; executable/machine-consumable material deserves a permissive software
+license with an explicit patent grant. Keeping them separate avoids the common
+trap of licensing a specification under terms designed for software.
+
+SPDX-License-Identifier: CC-BY-4.0 AND Apache-2.0

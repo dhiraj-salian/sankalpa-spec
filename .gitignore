@@ -1,0 +1,14 @@
+# Rendered diagram output (generated in CI from diagrams/src/)
+diagrams/out/
+*.rendered.svg
+*.rendered.png
+
+# Local tooling
+.DS_Store
+node_modules/
+.venv/
+*.log
+
+# Editor cruft
+.idea/
+*.swp

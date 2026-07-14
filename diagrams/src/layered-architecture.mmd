@@ -1,0 +1,26 @@
+%% Canonical Sankalpa layered architecture — the Mission→Knowledge transformation chain.
+%% Referenced by spec/book-01-foundations/03-the-layered-architecture.md
+flowchart TD
+    subgraph Human["Human / non-deterministic"]
+        M[Mission] --> S[Strategy] --> I[Intent]
+    end
+
+    subgraph Planning["Planning (LLM reasoning allowed, runtime-agnostic)"]
+        I --> G[Goals] --> P[Planning] --> HIR[AOS High IR]
+    end
+
+    subgraph Compiler["Compiler (deterministic)"]
+        HIR --> OPT[Optimization] --> POL[Policy Validation] --> LIR[AOS Low IR]
+    end
+
+    subgraph Execution["Execution (deterministic)"]
+        LIR --> RG[Runtime Graph] --> RT[Runtime] --> CTRL[Controllers] --> EX[Execution]
+    end
+
+    EX --> EV[Events] --> XP[Experience] --> K[(Knowledge)]
+    K -.improves.-> P
+
+    classDef nd fill:#fde,stroke:#a33;
+    classDef det fill:#def,stroke:#36a;
+    class M,S,I,G,P,HIR nd;
+    class OPT,POL,LIR,RG,RT,CTRL,EX,EV,XP,K det;
