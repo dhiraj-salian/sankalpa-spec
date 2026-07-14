@@ -1,6 +1,6 @@
 # Book 08 — Planners
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: RFC-0001, AEP-0001 (Planner interface); realizes P1, P8, P11.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: RFC-0001, AEP-0001 (Planner interface); realizes P1, P8, P11.*
 
 ## Scope
 The path from Intent to Goals to **High IR**, and the **planner plugin contract**. Planners are the *only* place non-deterministic reasoning lives, and they are strictly runtime-ignorant: a planner never knows about n8n, Docker, or Python.
