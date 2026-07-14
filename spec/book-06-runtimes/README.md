@@ -1,6 +1,6 @@
 # Book 06 — Runtimes
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: ADR-0002, RFC-0001, AEP-0002 (Runtime interface); realizes P11.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: ADR-0002, RFC-0001, AEP-0002 (Runtime interface); realizes P11.*
 
 ## Scope
 How lowered RuntimeGraphs actually execute, and the **runtime plugin contract** every backend implements. Runtimes are plugins; the runtime is selected *after* planning. No planner or IR construct is runtime-specific.
