@@ -1,6 +1,6 @@
 # Book 11 — Security
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: SECURITY.md; realizes P1, P7, P8, P9. This Book is load-bearing across the whole system.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: SECURITY.md; realizes P1, P7, P8, P9. This Book is load-bearing across the whole system.*
 
 ## Scope
 The complete security architecture: trust boundaries, the capability-based authority model, the Secret Broker, credential acquisition, the Policy Engine, the Approval Engine, identity/sessions, and audit. Every mechanism here exists to make a foundational principle mechanically true.
