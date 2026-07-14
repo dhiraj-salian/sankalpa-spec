@@ -1,6 +1,6 @@
 # Book 05 — The Compiler
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: RFC-0001; realizes principles P1, P9, P13.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: RFC-0001; realizes principles P1, P9, P13.*
 
 ## Scope
 The middle-end that turns High IR into runtime-specific execution graphs: the pass framework, optimization, policy validation, and lowering. Backends (per-runtime lowering) are specified in Book 06 and governed by the runtime AEP.
