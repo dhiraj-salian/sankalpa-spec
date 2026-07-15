@@ -1,6 +1,6 @@
 # Book 07 — Controllers & Reconciliation
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: ADR-0002; realizes P3, P5.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: ADR-0002; realizes P3, P5.*
 
 ## Scope
 The controller model: how every Resource is driven from Actual State to Desired State by a reconciliation loop, and how the Controller Runtime hosts these loops. This is the mechanism behind "everything has a controller."
