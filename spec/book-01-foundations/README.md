@@ -1,6 +1,6 @@
 # Book 01 — Foundations
 
-*Status: Draft skeleton · Nature: mixed; §Principles is Normative.*
+*Status: **Draft-complete** (all chapters authored) · Nature: mixed; §Principles is Normative.*
 *Reflects: ADR-0001, ADR-0002, RFC-0001.*
 
 ## Scope

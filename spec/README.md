@@ -41,6 +41,6 @@ Every Book serves one sentence:
 
 If a chapter cannot trace its relevance back to that sentence, it does not belong in the spec.
 
-## Status of this skeleton
+## Status
 
-Each Book below is present with its **scope** and **chapter outline** — the normative contract for *what that Book will specify*. Chapter bodies are authored during Roadmap Phase 1, one accepted RFC at a time. An outline here is a commitment, not a placeholder: it fixes the Book's boundaries so contributions land coherently.
+**All 16 Books are Draft-complete** — every chapter is authored (no placeholders) and cross-consistent, ~127k words of normative and informative text. Each Book's `README` states its status; each chapter declares its Nature (Normative/Informative) and the principles/RFCs it reflects. The corpus is ready for the **Phase 2 hardening pass** ([`../ROADMAP.md`](../ROADMAP.md)): adversarial review for inconsistencies, missing failure modes, and unspecified lifecycles, iterating toward a stable **v1.0**. New capability still enters through the RFC process ([`../process/`](../process/README.md)) — an accepted RFC is reflected into these Books to become `Final`.

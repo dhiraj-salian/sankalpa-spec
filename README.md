@@ -46,7 +46,7 @@ See [Book 01 — Foundations](spec/book-01-foundations/README.md) for the full t
 
 ## Status
 
-**Pre-v0.1 — draft.** Nothing here is stable. Every document carries a status header (`Draft` / `Proposed` / `Accepted` / `Final` / `Superseded`). See [`process/versioning-and-stability.md`](process/versioning-and-stability.md).
+**Pre-v0.1 — Draft-complete.** All 16 Books of [`spec/`](spec/README.md) are authored to *Draft-complete* (every chapter written, no placeholders) and are mutually consistent. Nothing is yet stable: the next milestone is the **Phase 2 hardening pass** (adversarial review for inconsistencies and gaps) toward a stable **v1.0** ([`ROADMAP.md`](ROADMAP.md)). Every document carries a status header (`Draft` / `Proposed` / `Accepted` / `Final` / `Superseded`). See [`process/versioning-and-stability.md`](process/versioning-and-stability.md).
 
 ## How to participate
 

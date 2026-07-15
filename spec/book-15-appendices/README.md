@@ -1,6 +1,6 @@
 # Book 15 — Appendices
 
-*Status: Draft skeleton · Nature: Informative (reference material).*
+*Status: **Draft-complete** (all chapters authored) · Nature: Informative (reference material).*
 
 ## Scope
 Cross-cutting reference material and end-to-end walkthroughs that tie the Books together. Non-normative, but essential for comprehension and onboarding.

@@ -1,6 +1,6 @@
 # Book 00 — Preamble
 
-*Status: Draft skeleton · Nature: Informative (except §Conformance, which is Normative).*
+*Status: **Draft-complete** (all chapters authored) · Nature: Informative (except §Conformance, which is Normative).*
 
 ## Scope
 How to read, cite, and conform to the Sankalpa specification. This Book contains no system design; it defines the meta-rules that make the other Books unambiguous.
