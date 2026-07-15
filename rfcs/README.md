@@ -10,11 +10,11 @@ RFCs are substantial design proposals — the primary vehicle for evolving Sanka
 |---|-------|--------|
 | [0000](0000-rfc-process.md) | The RFC process (meta) | Accepted |
 | [0001](0001-aos-ir-as-sole-executable-representation.md) | AOS IR as the sole executable representation | Proposed |
-| [0002](0002-replay-semantics-and-recorded-reasoning.md) | Replay semantics and the recorded-reasoning carve-out to the determinism guarantee | Proposed (FCP) |
-| [0003](0003-drift-detection-via-shadow-sampling.md) | Drift detection for determinized Capabilities via shadow sampling | Proposed (FCP) |
-| [0004](0004-compensation-failure-terminal-and-escalation.md) | Compensation-failure condition and escalation | Proposed (FCP) |
+| [0002](0002-replay-semantics-and-recorded-reasoning.md) | Replay semantics and the recorded-reasoning carve-out to the determinism guarantee | Accepted |
+| [0003](0003-drift-detection-via-shadow-sampling.md) | Drift detection for determinized Capabilities via shadow sampling | Accepted |
+| [0004](0004-compensation-failure-terminal-and-escalation.md) | Compensation-failure condition and escalation | Accepted |
 
-> RFC-0002–0004 are the Phase 2 hardening set. **Final Comment Period (accept) called 2026-07-15, concludes 2026-07-29** (10 working days). Solo-maintainer repo: the ≥2-Reviewer gate is waived and recorded until a second maintainer joins; FCP dispositions are noted in each RFC's header. 0003 depends on 0002 (must not reach Accepted ahead of it); 0004 shares a replay boundary with 0002 (§4.5). "Proposed (FCP)" marks the review sub-phase — the normative status per the [process](../process/rfc-process.md) status set remains `Proposed` until acceptance.
+> RFC-0002–0004 are the Phase 2 hardening set, **Accepted 2026-07-15** (FCP accept disposition, called and concluded the same day). Solo-maintainer repo: the 10-working-day FCP window was shortened and the ≥2-Reviewer gate waived, both recorded in each RFC header for auditability. 0002 and 0003 were accepted together so 0003 does not precede its 0002 dependency; 0004 shares a replay boundary with 0002 (§4.5). **Accepted ≠ normative**: per the [process](../process/rfc-process.md), each becomes `Final` only once its Documentation Changes are reflected into `spec/`, the Glossary, and diagrams — that reflection is the outstanding follow-up.
 
 ## Status legend
 

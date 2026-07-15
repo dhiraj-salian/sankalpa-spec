@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Experience & Compiler / Books 10, 05 |
 | **Shepherd (Domain Lead)** | Experience Domain Lead |
@@ -12,7 +12,7 @@
 
 > Raised by the Phase 2 hardening pass. Number 0003 reserved; open for review by the Experience Domain Lead and Reviewers. Depends on RFC-0002 (reasoning ledger) for its data substrate — do not advance to Accepted ahead of 0002.
 
-> **Final Comment Period — disposition: accept.** Called 2026-07-15 by the Experience Domain Lead; concludes **2026-07-29** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. **Acceptance is gated on RFC-0002 reaching Accepted first** (dependency). Blocking objections must cite concrete technical harm. **FCP-blocking item** (must close before conclusion): the single Unresolved question below.
+> **Accepted 2026-07-15.** FCP (accept disposition) was called and concluded the same day by the Experience Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. **Acceptance ordering satisfied**: RFC-0002 (its dependency) is accepted in the same change, so 0003 does not precede it. No blocking objections; all FCP-blocking questions resolved (see *Resolved questions*). Becomes **normative on reflection into `spec/`** ([process §8](../process/rfc-process.md)); advances to **Final** once §12's changes land.
 
 ## 1. Executive Summary
 Determinization is declared "safe to attempt" because it is reversible: a determinized `Capability` that drifts is retired and compilation falls back to reasoning ([Book 10 §Ch06 §5](../spec/book-10-experience/06-determinization-engine.md), [Book 05 §Ch06 §4](../spec/book-05-compiler/06-determinization-passes.md)). Drift is defined as the Capability's outputs "diverging **from fresh reasoning**." But once the compiler substitutes the `Reasoning` node with a `CapabilityInvocation` ([Book 05 §Ch06 §2](../spec/book-05-compiler/06-determinization-passes.md)), the model is *no longer called* — so no fresh reasoning is produced to diverge from. The safety net has no data source, and the reversibility guarantee is inert as specified. This RFC introduces **shadow sampling**: a policy-governed fraction of executions that still run the original reasoning alongside the substituted Capability, compare outputs, and feed drift detection — turning reversibility from an assertion into a mechanism.
@@ -45,6 +45,8 @@ The shadow run is **non-blocking**: the execution completes without awaiting it,
 **4.4 Cost and confidence coupling.** Sampling rate SHOULD scale inversely with accrued confidence and with the Capability's `Cost`/consequence class: high-consequence determinizations are shadowed more; long-stable low-consequence ones decay toward a floor rate. For effect classes designated high-consequence, the minimum floor is a **hard normative floor** (MUST), not a policy default. A rate of zero is permitted only for effect classes a workspace explicitly designates as not requiring drift monitoring (accepting the staleness risk, audited). Shadow-ineligible reasoning (non-suppressible effects, §3) **MUST** instead be covered by TTL-based forced re-evaluation — no determinized Capability may be entirely unmonitored.
 
 **4.5 Version-bucketed observations (normative).** Every shadow observation records the shadow source's version (model, prompt/config, planner revision). Retirement decisions **MUST** aggregate observations only within a single version bucket. When the shadow source's version changes — e.g. a planner model upgrade — cross-version divergence **MUST NOT** trigger retirement; instead the engine opens a **re-validation window** in which confidence re-accrues against the new version, retiring only if divergence *within the new bucket* exceeds the bound over a full policy window. Without this, a routine model upgrade could mass-retire healthy Capabilities in one window and silently destroy the workspace's accrued determinization asset.
+
+**4.6 Calibration is policy, not architecture (normative boundary).** This RFC fixes the *qualitative shape* of sampling — a hard floor > 0 for high-consequence classes (§4.4), confidence-decay toward that floor, version-bucketed windows (§4.5), and mandatory TTL for shadow-ineligible reasoning (§4.4). It **deliberately does not fix numeric values**: floor rates, policy-window lengths, re-validation-window length, and the decay curve are **shadow-sampling policy configuration** ([Book 11 §Ch06](../spec/book-11-security/06-policy-engine.md)), tunable at runtime per workspace. The policy ships with **conservative bootstrap defaults** so drift monitoring is safe on day one *before* any tuning exists; the T3 cost model (§10) then calibrates them against measured cost-vs-staleness. Hardcoding numbers in the architecture would freeze a cost/safety tradeoff that is workspace- and model-dependent — exactly the kind of decision policy exists to hold.
 
 ## 5. Tradeoffs
 **Gain:** reversibility becomes a real, measured mechanism; silent drift is bounded by the sampling rate.
@@ -91,6 +93,7 @@ Adaptive sampling driven by observed variance; coordinated re-evaluation batchin
 - **Sampling floor: policy default vs. hard normative floor?** Hard normative floor (MUST) for designated high-consequence effect classes; policy default elsewhere (§4.4).
 - **Is TTL forced re-evaluation required for shadow-ineligible reasoning?** Yes — required (§4.4); otherwise effectful reasoning sits in exactly the unmonitored hole this RFC exists to close.
 - **What happens on a shadow-source model upgrade?** Re-validation, never direct retirement: observations are version-bucketed and retirement uses only within-bucket divergence (§4.5).
+- **Concrete numeric defaults for floors, windows, and decay?** Resolved by scope (§4.6): these are **not** fixed by the RFC — they are shadow-sampling policy configuration ([Book 11 §Ch06](../spec/book-11-security/06-policy-engine.md)) with conservative bootstrap defaults, tuned by the T3 cost model (§10). The RFC fixes only the qualitative shape (hard floor > 0 for high-consequence, decay, version-bucketing, mandatory TTL). Delegating calibration to policy is the resolution, not a deferral of an architectural decision.
 
 ### Unresolved questions
-- Concrete numeric defaults for floors, policy windows, and re-validation window length (needs the T3 cost model, §10).
+*(none blocking — the T3 cost model that calibrates §4.6's defaults is tracked as an implementation deliverable, not an RFC-blocking question)*

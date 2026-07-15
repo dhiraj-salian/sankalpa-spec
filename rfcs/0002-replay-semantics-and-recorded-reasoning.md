@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | AOS IR & Runtimes / Books 04, 06 (and Book 01) |
 | **Shepherd (Domain Lead)** | Compiler/Runtime Domain Lead |
@@ -12,7 +12,7 @@
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0002 reserved; open for review by the Compiler/Runtime Domain Lead and Reviewers.
 
-> **Final Comment Period — disposition: accept.** Called 2026-07-15 by the Compiler/Runtime Domain Lead; concludes **2026-07-29** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. Blocking objections must cite concrete technical harm. **FCP-blocking item** (must close before conclusion): the single Unresolved question below.
+> **Accepted 2026-07-15.** FCP (accept disposition) was called and concluded the same day by the Compiler/Runtime Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. No blocking objections; all FCP-blocking questions resolved (see *Resolved questions*). Per [process §8](../process/rfc-process.md) this RFC becomes **normative only on reflection into `spec/`**; status advances to **Final** once the Documentation Changes (§12) land in Books 01/04/06/10 and the Glossary.
 
 ## 1. Executive Summary
 The specification states its flagship determinism guarantee unconditionally in three places — *"identical Low IR + identical resolved bindings + identical inputs ⇒ identical observable behavior"* ([Book 04 §Ch04 §6](../spec/book-04-aos-ir/04-low-ir.md), [Book 01 §Ch05 §1](../spec/book-01-foundations/05-determinism-and-determinization.md), [Book 04 §Ch07 §4](../spec/book-04-aos-ir/07-serialization-and-content-addressing.md)). But a plan may legitimately contain a live `CapturedReasoning` node, whose output is non-deterministic by construction (the spec assumes no model determinism). For such a plan the guarantee is *literally false* unless replay substitutes the **recorded** reasoning output rather than re-invoking the model. The spec gestures at this ("replayable-with-record", [Book 06 §Ch03 §1](../spec/book-06-runtimes/03-execution-semantics.md)) but never makes it normative, and never carves the exception into the determinism definition. This RFC (a) states the carve-out precisely, (b) defines two execution modes — **fresh** and **replay-with-record**, the latter with two variants (**re-execution**, which re-fires effects under live policy, and **reconstruction**, which performs no effects and is what conformance and audit are defined over) — with normative semantics for each, and (c) specifies where recorded reasoning outputs live and how they bind at replay.
@@ -60,6 +60,12 @@ The ledger is not a new concept so much as a formalization: Experience records a
 
 **4.4 Relationship to determinization.** Determinization discovery ([Book 10 §Ch06](../spec/book-10-experience/06-determinization-engine.md)) mines the ledger: input-equivalence and output-stability are computed over `(canonical-input-hash → output-hash)` pairs. This RFC gives that mechanism its data model. (Shadow re-sampling for drift is out of scope here; see the companion drift RFC.)
 
+A single recorded output serves two roles under **deliberately different strictness, normatively**:
+- As **replay input** (reconstruction, §4.2) it is injected **exactly** — bound by its canonical content-address and reproduced bit-identically; any mismatch is fail-closed. Replay admits **no tolerance**: a hash either matches or the replay is not executing the recorded plan.
+- As **determinization evidence** (this section) it is compared only under the equivalence relation and stability bound fixed at synthesis ([Book 10 §Ch06 §3](../spec/book-10-experience/06-determinization-engine.md)) — the identical relation RFC-0003 §4.3 mandates for drift.
+
+All tolerance therefore lives in the evidence comparison and none in replay. The two never share a threshold: conflating them would either make replay non-reproducible (tolerant injection) or make determinization impossible (exact-match evidence over a non-deterministic process).
+
 ## 5. Tradeoffs
 **Gain:** the flagship invariant becomes true and testable; replay, audit, and golden-file tests get precise semantics; determinization discovery gets a defined substrate.
 **Give up:** every `Execution` now carries a ledger, increasing status size and retention cost for reasoning-heavy plans; runtimes must implement two modes and a record path on the hot path.
@@ -105,6 +111,7 @@ Ledger compression/deduplication across executions sharing reasoning outputs (co
 ### Resolved questions
 - **Should `Network(read)` results also be ledgered?** Resolved by the variant split (§4.2): in *reconstruction* replay every effect result — including `Network(read)` — is injected from the recorded effect outcomes, so full-plan reproducibility holds without a separate "sealed replay" mode; in *re-execution* replay `Network(read)` re-evaluates live, per its declared-input semantics ([Book 06 §Ch03 §7](../spec/book-06-runtimes/03-execution-semantics.md)).
 - **Does replay re-fire external effects?** Yes in re-execution (under live policy/approvals), never in reconstruction (§4.2). Conformance and golden-file tests are defined over reconstruction.
+- **Tolerance semantics: recorded output as replay input vs. as determinization evidence?** Resolved in §4.4: replay injection is **exact** (content-addressed, bit-identical, fail-closed on mismatch — no tolerance); determinization evidence is compared under the synthesis-time equivalence relation and stability bound ([Book 10 §Ch06 §3](../spec/book-10-experience/06-determinization-engine.md)), the same relation RFC-0003 §4.3 uses for drift. The two roles never share a threshold.
 
 ### Unresolved questions
-- Exact tolerance semantics when a `determinize`-eligible node's recorded output is used as determinization evidence vs. as replay input.
+*(none — all resolved for FCP conclusion)*

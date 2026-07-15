@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Runtimes & Kernel / Books 06, 03, 02 |
 | **Shepherd (Domain Lead)** | Runtime Domain Lead |
@@ -12,7 +12,7 @@
 
 > Raised by the Phase 2 hardening pass. Number 0004 reserved; open for review by the Runtime Domain Lead and Reviewers. Shares a replay boundary with RFC-0002 (§4.5).
 
-> **Final Comment Period — disposition: accept.** Called 2026-07-15 by the Runtime Domain Lead; concludes **2026-07-29** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. Blocking objections must cite concrete technical harm. **FCP-blocking item** (must close before conclusion): the single Unresolved question below.
+> **Accepted 2026-07-15.** FCP (accept disposition) was called and concluded the same day by the Runtime Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. No blocking objections; all FCP-blocking questions resolved (see *Resolved questions*). Becomes **normative on reflection into `spec/`** ([process §8](../process/rfc-process.md)); advances to **Final** once §12's changes land.
 
 ## 1. Executive Summary
 Sankalpa handles partial execution failure with saga-style compensation: on failure, the runtime runs the declared compensating Capability to undo an effect ([Book 06 §Ch03 §4](../spec/book-06-runtimes/03-execution-semantics.md)). But the spec never defines what happens when **compensation itself fails** — the compensating Capability errors, times out, or is non-idempotent and unsafe to retry. The failure taxonomy ([Book 03 §Ch13 §6](../spec/book-03-kernel/13-failure-modes-and-degradation.md)) has no row for it. The result is an execution stranded with inconsistent external state and no defined terminal, no operator surface, and no audit obligation — a silent hole beneath the "no silent partial success" guarantee. This RFC defines a `CompensationFailed` terminal condition, a mandatory escalation path, and the accompanying Event and taxonomy entry.
@@ -46,6 +46,8 @@ Cascading compensation is bounded to **one level**: a compensator's own compensa
 - be recorded in the tamper-evident audit trail ([Book 11 §Ch09](../spec/book-11-security/09-audit-and-attribution.md)) with full attribution (which runtime, which grant, which effects);
 - surface as a durable operator remediation task, not merely a log line — the inconsistency requires human reconciliation and the system must make that unavoidable to miss.
 
+Resolving a `RemediationTask` is a privileged, audited operation (P10). For a residual touching a **high-consequence** effect class, resolution **MUST** require **two-party acknowledgment** — the resolver distinct from the party that authorized the original effect — mirroring consequence-scaled approval ([Book 11 §Ch07](../spec/book-11-security/07-approval-engine.md)) and the segregation-of-duties discipline around privileged operations. Lower-consequence residuals **MAY** be single-party. This closes the accountability loop: the same consequence class that gated the effect gates the sign-off that its inconsistency was reconciled.
+
 **4.4 Interaction with cancellation and approval-deny.** Cancellation ([Book 06 §Ch03 §3](../spec/book-06-runtimes/03-execution-semantics.md)) and approval-deny ([Book 11 §Ch07 §3](../spec/book-11-security/07-approval-engine.md)) both trigger compensation; both inherit §4.1–§4.3 when that compensation fails. (Whether irreversible effects should be schedule-barriered behind their approval is addressed separately in the approval-ordering finding.)
 
 **4.5 Interaction with replay (RFC-0002, normative).** *Reconstruction replay* of an execution that terminated `CompensationFailed` reproduces the recorded outcome — including the compensation failure — and performs no effects; it never re-attempts compensation. *Re-execution replay* is a new execution and follows §4.1–§4.3 afresh for its own effects. No replay mode implicitly re-attempts the *recorded* failed compensation against the residual external state: re-attempt is exclusively the operator-authorized remediation path (§4.3), audited per §9. This closes the interaction flagged in RFC-0002 §14.
@@ -58,7 +60,11 @@ Cascading compensation is bounded to **one level**: a compensator's own compensa
 None to the Kernel API surface beyond the additive Event; runtimes must expose compensation outcome (success/failure + residual) via existing RuntimeEvents ([Book 06 §Ch02 §5](../spec/book-06-runtimes/02-runtime-interface.md)).
 
 ## 7. Resource Changes
-`Execution` ([Book 02 §Ch07](../spec/book-02-resource-model/07-core-resource-catalog.md)): `CompensationFailed` becomes a defined condition reason; no new phase (it is a `Failed` execution, [Book 02 §Ch04](../spec/book-02-resource-model/04-lifecycle-model.md)). A new **`RemediationTask`** kind carries §4.3's durable operator obligation: §14 requires it be a retained ARM Resource that cannot be silently dropped, which a generic operator-task kind does not guarantee — this decides the reuse-vs-new question in favor of a dedicated, minimal kind (spec: references the Execution and residual effects; lifecycle: open → acknowledged → resolved, resolution audited).
+`Execution` ([Book 02 §Ch07](../spec/book-02-resource-model/07-core-resource-catalog.md)): `CompensationFailed` becomes a defined condition reason; no new phase (it is a `Failed` execution, [Book 02 §Ch04](../spec/book-02-resource-model/04-lifecycle-model.md)). A new **`RemediationTask`** kind carries §4.3's durable operator obligation: §14 requires it be a retained ARM Resource that cannot be silently dropped, which a generic operator-task kind does not guarantee — this decides the reuse-vs-new question in favor of a dedicated, minimal kind. This RFC fixes its **contract**; the field-level schema is developed under it in the Book 02 catalog reflection (as RFC-0001 fixes the IR contract and Book 04 the schema). Contract:
+- **Spec** — references (by id, secret-free) the `Failed`/`CompensationFailed` Execution, the affected effects, and the residual external state described in the condition (§4.1).
+- **Status** — the per-effect reconciliation outcomes and the acknowledgment record (who, when, and — for high-consequence residuals — both parties per §4.3).
+- **Lifecycle** — `open → acknowledged → resolved`; terminal only on audited resolution, non-droppable (retained per §14). Resolution of a high-consequence residual requires two-party acknowledgment (§4.3).
+- **Controller** — surfaces open tasks to operability ([Book 14 §Ch08](../spec/book-14-observability-governance/08-operability.md)); does not auto-resolve.
 
 ## 8. Event Changes
 Additive, high-severity `execution.compensation_failed` (secret-free; references effects and residual state by id). Consumers: operability/alerting ([Book 14 §Ch08](../spec/book-14-observability-governance/08-operability.md)), audit ([Book 11 §Ch09](../spec/book-11-security/09-audit-and-attribution.md)), Experience ([Book 10 §Ch03](../spec/book-10-experience/03-capture-pipeline.md)).
@@ -95,6 +101,7 @@ Structured remediation runbooks attached to `CompensationFailed`; automated re-a
 - **Reuse an operator-task kind vs. introduce `RemediationTask`?** Introduce a dedicated `RemediationTask` kind (§7) — the non-droppable/retention requirement (§14) decides it.
 - **Depth limit for cascading compensation?** One level; a failed compensator's own effects are reported as residual, never compensated in turn (§4.2).
 - **Does replay re-attempt failed compensation?** Never implicitly; only via the operator-authorized remediation path (§4.5).
+- **`RemediationTask` schema, and two-party acknowledgment for high-consequence residuals?** Resolved: the RFC fixes the `RemediationTask` *contract* (§7) — Spec/Status/Lifecycle/Controller — and defers the field-level schema to the Book 02 reflection, per the normal contract-vs-schema split. Resolution **MUST** require two-party acknowledgment for high-consequence residuals, single-party otherwise (§4.3), scaling accountability to the same consequence class that gated the effect.
 
 ### Unresolved questions
-- Exact `RemediationTask` schema and whether resolution requires two-party acknowledgment for high-consequence residuals.
+*(none — all resolved for FCP conclusion)*
