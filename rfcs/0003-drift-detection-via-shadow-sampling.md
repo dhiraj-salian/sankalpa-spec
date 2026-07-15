@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Experience & Compiler / Books 10, 05 |
 | **Shepherd (Domain Lead)** | Experience Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass. Numbering provisional until reserved at PR time. Depends on RFC-0002 (reasoning ledger) for its data substrate.
+> Raised by the Phase 2 hardening pass. Number 0003 reserved; open for review by the Experience Domain Lead and Reviewers. Depends on RFC-0002 (reasoning ledger) for its data substrate — do not advance to Accepted ahead of 0002.
 
 ## 1. Executive Summary
 Determinization is declared "safe to attempt" because it is reversible: a determinized `Capability` that drifts is retired and compilation falls back to reasoning ([Book 10 §Ch06 §5](../spec/book-10-experience/06-determinization-engine.md), [Book 05 §Ch06 §4](../spec/book-05-compiler/06-determinization-passes.md)). Drift is defined as the Capability's outputs "diverging **from fresh reasoning**." But once the compiler substitutes the `Reasoning` node with a `CapabilityInvocation` ([Book 05 §Ch06 §2](../spec/book-05-compiler/06-determinization-passes.md)), the model is *no longer called* — so no fresh reasoning is produced to diverge from. The safety net has no data source, and the reversibility guarantee is inert as specified. This RFC introduces **shadow sampling**: a policy-governed fraction of executions that still run the original reasoning alongside the substituted Capability, compare outputs, and feed drift detection — turning reversibility from an assertion into a mechanism.

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | AOS IR & Runtimes / Books 04, 06 (and Book 01) |
 | **Shepherd (Domain Lead)** | Compiler/Runtime Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time.
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0002 reserved; open for review by the Compiler/Runtime Domain Lead and Reviewers.
 
 ## 1. Executive Summary
 The specification states its flagship determinism guarantee unconditionally in three places — *"identical Low IR + identical resolved bindings + identical inputs ⇒ identical observable behavior"* ([Book 04 §Ch04 §6](../spec/book-04-aos-ir/04-low-ir.md), [Book 01 §Ch05 §1](../spec/book-01-foundations/05-determinism-and-determinization.md), [Book 04 §Ch07 §4](../spec/book-04-aos-ir/07-serialization-and-content-addressing.md)). But a plan may legitimately contain a live `CapturedReasoning` node, whose output is non-deterministic by construction (the spec assumes no model determinism). For such a plan the guarantee is *literally false* unless replay substitutes the **recorded** reasoning output rather than re-invoking the model. The spec gestures at this ("replayable-with-record", [Book 06 §Ch03 §1](../spec/book-06-runtimes/03-execution-semantics.md)) but never makes it normative, and never carves the exception into the determinism definition. This RFC (a) states the carve-out precisely, (b) defines two execution modes — **fresh** and **replay-with-record**, the latter with two variants (**re-execution**, which re-fires effects under live policy, and **reconstruction**, which performs no effects and is what conformance and audit are defined over) — with normative semantics for each, and (c) specifies where recorded reasoning outputs live and how they bind at replay.
