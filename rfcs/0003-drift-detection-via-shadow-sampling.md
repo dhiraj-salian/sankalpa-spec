@@ -34,11 +34,15 @@ Who is affected: every workspace relying on determinization for correctness. Cos
 **4.2 Sampling decision (normative, policy-governed).** For each execution of a shadow-marked instruction the runtime consults a **shadow-sampling policy** ([Book 11 §Ch06](../spec/book-11-security/06-policy-engine.md)) yielding a sampling rate per Capability/effect-class. On a sampled execution the runtime:
 1. Executes the deterministic Capability (the authoritative result used by the plan).
 2. **Additionally** runs the original reasoning as a side computation whose output is recorded to the reasoning ledger (RFC-0002) but **MUST NOT** affect the plan's observable behavior (no external effects beyond `Reason`; the shadow run's non-`Reason` effects, if any, are suppressed or it is disqualified from shadowing).
-3. Emits a `determinization.shadow_observed` Event with both output hashes.
+3. Emits a `determinization.shadow_observed` Event with both output hashes and the shadow source's version (§4.5).
 
-**4.3 Divergence and retirement (normative).** The determinization engine ([Book 10 §Ch06 §5](../spec/book-10-experience/06-determinization-engine.md)) aggregates shadow observations. When measured divergence over a policy window exceeds the stability bound used at synthesis ([Book 10 §Ch06 §3](../spec/book-10-experience/06-determinization-engine.md)), it **MUST** retire the Capability via the Capability Manager's prompt-and-complete revocation ([Book 03 §Ch06 §7](../spec/book-03-kernel/06-capability-manager.md)); future compilations then fail the freshness gate ([Book 05 §Ch06 §3.4](../spec/book-05-compiler/06-determinization-passes.md)) and fall back to reasoning.
+The shadow run is **non-blocking**: the execution completes without awaiting it, so sampled executions retain determinized latency. Its reasoning `Cost` is attributed to a workspace-level drift-monitoring budget, **not** the plan's declared cost — sampling **MUST NOT** cause a plan to exceed its own cost bounds or alter its cost accounting.
 
-**4.4 Cost and confidence coupling.** Sampling rate SHOULD scale inversely with accrued confidence and with the Capability's `Cost`/consequence class: high-consequence determinizations are shadowed more; long-stable low-consequence ones decay toward a floor rate. A rate of zero is permitted only for effect classes a workspace explicitly designates as not requiring drift monitoring (accepting the staleness risk, audited).
+**4.3 Divergence and retirement (normative).** The determinization engine ([Book 10 §Ch06 §5](../spec/book-10-experience/06-determinization-engine.md)) aggregates shadow observations. Divergence **MUST** be computed under the *same* canonicalization/equivalence relation used at synthesis ([Book 10 §Ch06 §3](../spec/book-10-experience/06-determinization-engine.md)) — raw hash inequality over a non-deterministic process has a nonzero baseline from model variance alone, and a stricter relation than synthesis used would retire healthy Capabilities on noise. When measured divergence over a policy window exceeds the stability bound used at synthesis, the engine **MUST** retire the Capability via the Capability Manager's prompt-and-complete revocation ([Book 03 §Ch06 §7](../spec/book-03-kernel/06-capability-manager.md)); future compilations then fail the freshness gate ([Book 05 §Ch06 §3.4](../spec/book-05-compiler/06-determinization-passes.md)) and fall back to reasoning.
+
+**4.4 Cost and confidence coupling.** Sampling rate SHOULD scale inversely with accrued confidence and with the Capability's `Cost`/consequence class: high-consequence determinizations are shadowed more; long-stable low-consequence ones decay toward a floor rate. For effect classes designated high-consequence, the minimum floor is a **hard normative floor** (MUST), not a policy default. A rate of zero is permitted only for effect classes a workspace explicitly designates as not requiring drift monitoring (accepting the staleness risk, audited). Shadow-ineligible reasoning (non-suppressible effects, §3) **MUST** instead be covered by TTL-based forced re-evaluation — no determinized Capability may be entirely unmonitored.
+
+**4.5 Version-bucketed observations (normative).** Every shadow observation records the shadow source's version (model, prompt/config, planner revision). Retirement decisions **MUST** aggregate observations only within a single version bucket. When the shadow source's version changes — e.g. a planner model upgrade — cross-version divergence **MUST NOT** trigger retirement; instead the engine opens a **re-validation window** in which confidence re-accrues against the new version, retiring only if divergence *within the new bucket* exceeds the bound over a full policy window. Without this, a routine model upgrade could mass-retire healthy Capabilities in one window and silently destroy the workspace's accrued determinization asset.
 
 ## 5. Tradeoffs
 **Gain:** reversibility becomes a real, measured mechanism; silent drift is bounded by the sampling rate.
@@ -52,7 +56,7 @@ Who is affected: every workspace relying on determinization for correctness. Cos
 `Capability` (determinized) status gains drift telemetry (sample count, divergence rate, last-shadow time) — additive, feeds retirement. No new kind.
 
 ## 8. Event Changes
-Additive: `determinization.shadow_observed` (both output hashes, secret-free) and `determinization.retired` (already implied by [Book 10 §Ch06 §7](../spec/book-10-experience/06-determinization-engine.md); made explicit). Per-subject ordering on the Capability subject suffices.
+Additive: `determinization.shadow_observed` (both output hashes plus shadow-source version, secret-free) and `determinization.retired` (already implied by [Book 10 §Ch06 §7](../spec/book-10-experience/06-determinization-engine.md); made explicit). Per-subject ordering on the Capability subject suffices.
 
 ## 9. Security Impact
 The shadow reasoning run **MUST** obey the same secret-freedom and no-secret-in-reasoning rules ([Book 08 §Ch04](../spec/book-08-planners/04-planner-isolation-and-secrets.md), P7) as any reasoning. Because the shadow output is discarded from the plan, it **MUST NOT** be able to introduce effects into the execution (§4.2). Determinization remains tenant-scoped ([Book 10 §Ch06 §7](../spec/book-10-experience/06-determinization-engine.md)); shadow observations are workspace-scoped. Security review required (drift monitoring is part of the P13/P1 safety argument).
@@ -66,14 +70,15 @@ Adds reasoning cost on the sampled fraction only; at a 1% floor the erosion of d
 - Conformance: shadow runs never alter observable plan behavior.
 
 ## 12. Documentation Changes
-Extend [Book 10 §Ch06 §5](../spec/book-10-experience/06-determinization-engine.md) with the shadow-sampling mechanism (replacing the under-specified "diverging from fresh reasoning" language); note `shadowSource` in [Book 05 §Ch06](../spec/book-05-compiler/06-determinization-passes.md) and [Book 04 §Ch04](../spec/book-04-aos-ir/04-low-ir.md). Glossary: *Shadow sampling*, *Drift*, *Shadow source*.
+Extend [Book 10 §Ch06 §5](../spec/book-10-experience/06-determinization-engine.md) with the shadow-sampling mechanism (replacing the under-specified "diverging from fresh reasoning" language); note `shadowSource` in [Book 05 §Ch06](../spec/book-05-compiler/06-determinization-passes.md) and [Book 04 §Ch04](../spec/book-04-aos-ir/04-low-ir.md). Glossary: *Shadow sampling*, *Drift*, *Shadow source*, *Version bucket*, *Re-validation window*.
 
 ## 13. Migration Strategy
 Additive and pre-1.0. Existing determinized Capabilities gain a default sampling rate on next compilation; none are invalidated.
 
 ## 14. Risks
 - **Cost erosion** if sampling rate is set too high — mitigated by confidence-decaying rates (§4.4).
-- **Shadow effect leakage** if a reasoning node's non-`Reason` effects aren't fully suppressible — mitigated by disqualifying such nodes from shadowing (they fall back to TTL re-evaluation, §3 alternative).
+- **Retirement storm on model upgrade** — a new planner model diverging stylistically from every synthesized Capability — mitigated by version-bucketed aggregation and re-validation windows (§4.5).
+- **Shadow effect leakage** if a reasoning node's non-`Reason` effects aren't fully suppressible — mitigated by disqualifying such nodes from shadowing (they fall back to mandatory TTL re-evaluation, §4.4).
 - **Unknown unknown:** reasoning that is non-deterministic *and* drift-prone but rarely sampled could still slip; watched via minimum-rate floors per consequence class.
 
 ## 15. Future Improvements
@@ -81,8 +86,9 @@ Adaptive sampling driven by observed variance; coordinated re-evaluation batchin
 
 ---
 ### Resolved questions
-*(none yet)*
+- **Sampling floor: policy default vs. hard normative floor?** Hard normative floor (MUST) for designated high-consequence effect classes; policy default elsewhere (§4.4).
+- **Is TTL forced re-evaluation required for shadow-ineligible reasoning?** Yes — required (§4.4); otherwise effectful reasoning sits in exactly the unmonitored hole this RFC exists to close.
+- **What happens on a shadow-source model upgrade?** Re-validation, never direct retirement: observations are version-bucketed and retirement uses only within-bucket divergence (§4.5).
 
 ### Unresolved questions
-- Minimum mandatory sampling floor per consequence class — policy default vs. hard normative floor?
-- Whether TTL-based forced re-evaluation should be a required complement for shadow-ineligible (effectful) reasoning.
+- Concrete numeric defaults for floors, policy windows, and re-validation window length (needs the T3 cost model, §10).
