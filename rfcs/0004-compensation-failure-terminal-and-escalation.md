@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Runtime Domain Lead |
 | **Created** | 2026-07-15 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | [#4](https://github.com/dhiraj-salian/sankalpa-spec/issues/4) |
 
 > Raised by the Phase 2 hardening pass. Number 0004 reserved; open for review by the Runtime Domain Lead and Reviewers. Shares a replay boundary with RFC-0002 (§4.5).
 
@@ -62,7 +62,7 @@ Resolving a `RemediationTask` is a privileged, audited operation (P10). For a re
 None to the Kernel API surface beyond the additive Event; runtimes must expose compensation outcome (success/failure + residual) via existing RuntimeEvents ([Book 06 §Ch02 §5](../spec/book-06-runtimes/02-runtime-interface.md)).
 
 ## 7. Resource Changes
-`Execution` ([Book 02 §Ch07](../spec/book-02-resource-model/07-core-resource-catalog.md)): `CompensationFailed` becomes a defined condition reason; no new phase (it is a `Failed` execution, [Book 02 §Ch04](../spec/book-02-resource-model/04-lifecycle-model.md)). A new **`RemediationTask`** kind carries §4.3's durable operator obligation: §14 requires it be a retained ARM Resource that cannot be silently dropped, which a generic operator-task kind does not guarantee — this decides the reuse-vs-new question in favor of a dedicated, minimal kind. This RFC fixes its **contract**; the field-level schema is developed under it in the Book 02 catalog reflection (as RFC-0001 fixes the IR contract and Book 04 the schema). Contract:
+`Execution` ([Book 02 §Ch07](../spec/book-02-resource-model/07-core-resource-catalog.md)): `CompensationFailed` becomes a defined condition reason; no new phase (it is a `Failed` execution, [Book 02 §Ch04](../spec/book-02-resource-model/04-lifecycle-model.md)). A new **`RemediationTask`** kind carries §4.3's durable operator obligation: §14 requires it be a retained ARM Resource that cannot be silently dropped, which a generic operator-task kind does not guarantee — this decides the reuse-vs-new question in favor of a dedicated, minimal kind. This RFC fixes its **contract**; the field-level schema is developed under it in the owning Book (Book 06), per the standard contract-vs-schema split (as RFC-0001 fixes the IR contract and Book 04 the schema) — tracked in [#4](https://github.com/dhiraj-salian/sankalpa-spec/issues/4). Contract:
 - **Spec** — references (by id, secret-free) the `Failed`/`CompensationFailed` Execution, the affected effects, and the residual external state described in the condition (§4.1).
 - **Status** — the per-effect reconciliation outcomes and the acknowledgment record (who, when, and — for high-consequence residuals — both parties per §4.3).
 - **Lifecycle** — `open → acknowledged → resolved`; terminal only on audited resolution, non-droppable (retained per §14). Resolution of a high-consequence residual requires two-party acknowledgment (§4.3).
