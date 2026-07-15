@@ -10,6 +10,11 @@ RFCs are substantial design proposals — the primary vehicle for evolving Sanka
 |---|-------|--------|
 | [0000](0000-rfc-process.md) | The RFC process (meta) | Accepted |
 | [0001](0001-aos-ir-as-sole-executable-representation.md) | AOS IR as the sole executable representation | Proposed |
+| [0002](0002-replay-semantics-and-recorded-reasoning.md) | Replay semantics and the recorded-reasoning carve-out to the determinism guarantee | Draft |
+| [0003](0003-drift-detection-via-shadow-sampling.md) | Drift detection for determinized Capabilities via shadow sampling | Draft |
+| [0004](0004-compensation-failure-terminal-and-escalation.md) | Compensation-failure terminal state and escalation | Draft |
+
+> RFC-0002–0004 are Phase 2 hardening drafts (provisional numbers, reserved at PR time). 0003 depends on 0002.
 
 ## Status legend
 
