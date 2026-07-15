@@ -13,8 +13,15 @@ RFCs are substantial design proposals — the primary vehicle for evolving Sanka
 | [0002](0002-replay-semantics-and-recorded-reasoning.md) | Replay semantics and the recorded-reasoning carve-out to the determinism guarantee | Final |
 | [0003](0003-drift-detection-via-shadow-sampling.md) | Drift detection for determinized Capabilities via shadow sampling | Final |
 | [0004](0004-compensation-failure-terminal-and-escalation.md) | Compensation-failure condition and escalation | Final |
+| [0005](0005-secret-materialization-stability-and-determinism.md) | Secret materialization stability and the secret carve-out to the determinism guarantee | Draft |
+| [0006](0006-vault-base-version-stamping-for-lost-update-safe-sync.md) | Vault base-version stamping for lost-update-safe bidirectional Knowledge synchronization | Draft |
+| [0007](0007-scheduling-admission-liveness-priority-deadlines-and-terminals.md) | Scheduling admission liveness — priority, deadlines, starvation-freedom, and the pending-work terminal | Draft |
+| [0008](0008-grant-reauthorization-on-package-upgrade.md) | Capability-grant re-authorization on package upgrade — binding grants to verified version identity | Draft |
+| [0009](0009-channel-identity-binding-and-assurance.md) | Channel identity binding and assurance — authenticating messaging-channel senders and gating cross-channel session continuity | Draft |
 
 > RFC-0002–0004 are the Phase 2 hardening set, **Final 2026-07-15** — accepted (FCP accept disposition, called and concluded the same day) and reflected into `spec/` and the Glossary in the same change. Solo-maintainer repo: the 10-working-day FCP window was shortened and the ≥2-Reviewer gate waived, both recorded in each RFC header for auditability. 0002 and 0003 were accepted together so 0003 does not precede its 0002 dependency; 0004 shares a replay boundary with 0002 (§4.5) and adds the `RemediationTask` core kind. Reflection touched Books 01–06 and 10 plus the Glossary and CHANGELOG.
+>
+> RFC-0005–0009 are the **second Phase 2 hardening batch** (Draft, provisional numbers reserved at PR time), authored against the 0002–0004-Final spec. Each pins one concrete gap in a normative guarantee: **0005** — secret values are unrecordable (P7) resolved bindings, so intra-execution stability and the secret carve-out to the determinism guarantee are unspecified (amends the reflected Book 01 §05 / Book 06 §03 guarantee; extends re-execution replay). **0006** (Knowledge) — vault↔graph optimistic concurrency has no baseline for offline direct vault edits. **0007** (Kernel) — scheduling fairness/deadline/shed promises are unbacked and `Pending` can stall silently. **0008** (Packages) — capability grants are not re-authorized on upgrade (upgrade-laundering). **0009** (Interfaces) — messaging-channel sender identity is mapped, not authenticated. 0005 touches 0004's `CompensationFailed` condition; 0007 shares its no-silent-stall spine; 0006/0008/0009 are independent, first findings in their domains.
 
 ## Status legend
 
