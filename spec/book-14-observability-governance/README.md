@@ -1,6 +1,6 @@
 # Book 14 — Observability & Runtime Governance
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: realizes P5, P9, P10.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: realizes P5, P9, P10.*
 
 ## Scope
 How the running system is seen and governed: the Event model in full, metrics, tracing, logging (secret-free by construction), audit, and the runtime enforcement of Policy. Complements Book 11 (security-time) with operate-time concerns.
