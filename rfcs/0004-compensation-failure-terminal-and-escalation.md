@@ -12,6 +12,8 @@
 
 > Raised by the Phase 2 hardening pass. Number 0004 reserved; open for review by the Runtime Domain Lead and Reviewers. Shares a replay boundary with RFC-0002 (§4.5).
 
+> **Final Comment Period — disposition: accept.** Called 2026-07-15 by the Runtime Domain Lead; concludes **2026-07-29** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. Blocking objections must cite concrete technical harm. **FCP-blocking item** (must close before conclusion): the single Unresolved question below.
+
 ## 1. Executive Summary
 Sankalpa handles partial execution failure with saga-style compensation: on failure, the runtime runs the declared compensating Capability to undo an effect ([Book 06 §Ch03 §4](../spec/book-06-runtimes/03-execution-semantics.md)). But the spec never defines what happens when **compensation itself fails** — the compensating Capability errors, times out, or is non-idempotent and unsafe to retry. The failure taxonomy ([Book 03 §Ch13 §6](../spec/book-03-kernel/13-failure-modes-and-degradation.md)) has no row for it. The result is an execution stranded with inconsistent external state and no defined terminal, no operator surface, and no audit obligation — a silent hole beneath the "no silent partial success" guarantee. This RFC defines a `CompensationFailed` terminal condition, a mandatory escalation path, and the accompanying Event and taxonomy entry.
 
