@@ -1,6 +1,6 @@
 # Book 13 — Interfaces & Channels
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: realizes P4, P10, P11.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: realizes P4, P10, P11.*
 
 ## Scope
 How humans and systems interact with Sankalpa: the integrated **Web Runtime**, the **channel** adapters (transport only), and the API gateway. Channels carry intent and results; they never make decisions.
