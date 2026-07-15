@@ -1,6 +1,6 @@
 # Book 05 · Chapter 06 — Determinization Passes
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principle P13 (and P1). Companion to Book 10 §06 (Experience/determinization engine), Book 03 §Ch06 (Capability Manager).*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0003 (`shadowSource`/drift); realizes principle P13 (and P1). Companion to Book 10 §06 (Experience/determinization engine), Book 03 §Ch06 (Capability Manager).*
 
 > Determinization is Sankalpa's compounding advantage made mechanical: **repeated non-deterministic reasoning is converted into reusable deterministic Capabilities** (P13). This chapter specifies the compiler side — how a determinized Capability, once discovered, is substituted into a plan, and the strict safety gates that keep the substitution sound. Discovery (mining Experience for candidates) is specified in Book 10 §06; the two meet here.
 
@@ -16,7 +16,7 @@ Determinization spans two subsystems; the compiler owns phase B.
 
 - **Phase A — Discovery (Book 10 §06).** The Experience/determinization engine mines Experience records for recurring reasoning: same reasoning shape, equivalent typed inputs (matched by content hash of inputs + signature, Book 04 §Ch07), stable outputs, over a threshold of occurrences with acceptable variance. When criteria are met, it **synthesizes and registers** a candidate `Capability` (typed signature identical to the reasoning's, effects a subset — `Reason` removed) via the Capability Manager (Book 03 §Ch06 §6), with provenance `determinized` and a link to the supporting evidence.
 
-- **Phase B — Substitution (this chapter).** During compilation, the **determinization pass** (a transform pass, Ch 02) checks each eligible `Reasoning`/`CapturedReasoning` node: if a registered, applicable determinized Capability exists whose evidence still holds, it **replaces** the reasoning node with a `CapabilityInvocation` of that Capability, recording the substitution (Book 04 §Ch04 §3). Otherwise it leaves the node untouched.
+- **Phase B — Substitution (this chapter).** During compilation, the **determinization pass** (a transform pass, Ch 02) checks each eligible `Reasoning`/`CapturedReasoning` node: if a registered, applicable determinized Capability exists whose evidence still holds, it **replaces** the reasoning node with a `CapabilityInvocation` of that Capability, recording the substitution (Book 04 §Ch04 §3). The pass MUST mark the resulting invocation with a **`shadowSource`** — the identity of the reasoning it replaced — so the runtime can reconstruct and shadow-sample the original reasoning for drift detection (Book 10 §Ch06 §5); without it, the substituted node has no data source to detect drift against. Otherwise it leaves the node untouched.
 
 Phase B runs **before lowering** (Ch 01 §2) so lowering works on the final graph.
 
@@ -36,7 +36,7 @@ If any gate fails, the pass **MUST** leave the reasoning node as-is. The safe de
 ## 4. Reversibility
 
 Determinization is **not permanent**. Because provenance and evidence are recorded (Book 03 §Ch06 §6, Book 10 §06):
-- If a determinized Capability later proves wrong (drift, rising error rate observed in new Experience), the engine **retires** it (revokes the grant / marks it deprecated, Book 03 §Ch06 §7). Subsequent compilations fail the freshness gate (§3.4) and fall back to the original `Reasoning` node — the plan degrades gracefully to non-deterministic reasoning rather than executing a stale answer.
+- If a determinized Capability later proves wrong, the engine **retires** it (revokes the grant / marks it deprecated, Book 03 §Ch06 §7). Drift is detected by **shadow sampling** (Book 10 §Ch06 §5): a policy-governed fraction of executions re-runs the `shadowSource` reasoning alongside the Capability and compares outputs — necessary because the substituted node no longer calls the model on its own. Subsequent compilations fail the freshness gate (§3.4) and fall back to the original `Reasoning` node — the plan degrades gracefully to non-deterministic reasoning rather than executing a stale answer.
 - This reversibility is why substitution is safe to attempt: the worst case is a retired Capability and a return to reasoning, never a silently-wrong deterministic execution.
 
 ## 5. Why this belongs in the compiler

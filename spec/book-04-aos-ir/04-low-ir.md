@@ -1,6 +1,6 @@
 # Book 04 · Chapter 04 — Low IR
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P1, P7, P9 and IR-P1…P10.*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0002 (recorded-reasoning carve-out), RFC-0003 (`shadowSource`); realizes principles P1, P7, P9 and IR-P1…P10.*
 
 > Low IR is the compiler-produced form (Book 05): High IR after optimization and policy validation, lowered to fix everything needed for **deterministic execution** — evaluation order, error handling, retries, idempotency, and resource/secret **bindings by reference** — while still naming **no specific runtime** (IR-P7). A runtime backend lowers Low IR into a runtime-specific RuntimeGraph (Books 05–06).
 
@@ -48,8 +48,8 @@ Instruction:
   bindings     list<BindingSite> # secret/resource references resolved at execution (§5)
 ```
 
-- `LoweredCapability` — a concrete, ordered invocation of a Capability.
-- `CapturedReasoning` — the lowered form of a High `Reasoning` node. Its non-determinism is confined exactly as at the High level (IR-P1): the instruction produces a typed value; if determinization (Book 05 §06) has folded it into a cached Capability, lowering replaces it with a `LoweredCapability` and records the substitution.
+- `LoweredCapability` — a concrete, ordered invocation of a Capability. When produced by determinization substitution (Book 05 §06 §2), it MAY carry an optional **`shadowSource`** — the identity of the `Reasoning` node it replaced — so the runtime can reconstruct and shadow-sample the original reasoning for drift detection (Book 10 §Ch06 §5). `shadowSource` is metadata for monitoring only; it never changes the instruction's typed behavior.
+- `CapturedReasoning` — the lowered form of a High `Reasoning` node. Its non-determinism is confined exactly as at the High level (IR-P1): the instruction produces a typed value; if determinization (Book 05 §06) has folded it into a cached Capability, lowering replaces it with a `LoweredCapability` (carrying `shadowSource`) and records the substitution. Where it remains, its output is recorded to the execution's reasoning ledger so the run is replayable-with-record (Book 06 §Ch03 §1).
 - Control ops (`Branch`, `Fork`/`Join`, `LoopStep`) realize High control-flow within the schedule.
 
 ## 4. Execution policy (the heart of Low IR)
@@ -89,7 +89,7 @@ BindingSite:
 
 ## 6. Determinism obligation restated
 
-Low IR is the artifact executed (via its RuntimeGraph). Therefore IR-P1 lands here most concretely: **identical Low IR + identical resolved bindings + identical inputs ⇒ identical observable behavior.** The schedule's freedom (any order respecting the partial order) does not weaken this, because the effect/idempotency contract (§4, Ch 06) guarantees observational equivalence across legal orders. Replay tests (Book 05 testing, Book 10) assert exactly this property against golden Low IR.
+Low IR is the artifact executed (via its RuntimeGraph). Therefore IR-P1 lands here most concretely: **identical Low IR + identical resolved bindings + identical inputs + identical recorded reasoning/`Time`/`Random` outputs ⇒ identical observable behavior.** The recorded-reasoning term (RFC-0002) is required because a live `CapturedReasoning` node is non-deterministic by construction; for a plan with no such nodes it is empty and the guarantee reduces to the three-part form. The schedule's freedom (any order respecting the partial order) does not weaken this, because the effect/idempotency contract (§4, Ch 06) guarantees observational equivalence across legal orders. Replay tests (Book 05 testing, Book 10) assert exactly this property against golden Low IR, in the reconstruction variant (Book 06 §Ch03 §1).
 
 ## 7. Relationship to RuntimeGraph and runtime selection
 
@@ -101,5 +101,5 @@ Low IR is still runtime-agnostic (IR-P7). A **runtime backend** (Book 06, AEP-00
 2. Lowering is semantics-preserving; any schedule order respecting the partial order yields identical observable results.
 3. Retries attach only to idempotent (or keyed-idempotent) instructions; failable effects declare `onError` (deny-by-default).
 4. Bindings (secrets/resources) are references resolved only at execution, capability-gated; no value ever enters IR.
-5. `CapturedReasoning` confines non-determinism to its node; determinized reasoning is replaced by a cached Capability with the substitution recorded.
-6. Identical Low IR + inputs + resolved bindings ⇒ identical observable behavior, verifiable by replay.
+5. `CapturedReasoning` confines non-determinism to its node; determinized reasoning is replaced by a cached Capability with the substitution recorded and an optional `shadowSource` for drift detection.
+6. Identical Low IR + inputs + resolved bindings + recorded reasoning/`Time`/`Random` outputs ⇒ identical observable behavior, verifiable by reconstruction replay.

@@ -1,6 +1,6 @@
 # Book 02 · Chapter 04 — Lifecycle Model
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P3, P5, P6.*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0004 (terminal conditions, not phases); realizes principles P3, P5, P6.*
 
 > Every Resource has a lifecycle (P3). This chapter defines the kind-independent lifecycle: the `phase` enum, the legal transitions, finalizers, deletion semantics, and garbage collection. Kinds MAY define sub-states inside a phase but MUST map onto these phases.
 
@@ -25,6 +25,7 @@ Notes:
 - Long-lived kinds (Service, Runtime, Policy) live in `Active`; they never reach `Succeeded`.
 - One-shot kinds (Execution, Compilation) end in `Succeeded`/`Failed` and are later reclaimed (§5).
 - `phase` is a summary; the authoritative fine-grained state is always `conditions` + `actualState`.
+- **Outcomes finer than the two terminal phases are `conditions`, never new phases.** An Execution that rolled back is `Failed` with a `Compensated` condition; one stopped early is `Failed`/`Cancelled`; one left externally inconsistent is `Failed` with a `CompensationFailed` condition (RFC-0004, Book 06 §Ch03 §4). This is the direct consequence of "a kind MUST NOT invent a new top-level phase": vocabulary like *Compensated*/*Cancelled*/*CompensationFailed* lives in `conditions`, which is why consumers (Experience capture, audit) MUST read conditions, not just phase, to distinguish these.
 
 ## 3. Legal transitions
 

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted |
+| **Status** | Final |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Experience & Compiler / Books 10, 05 |
 | **Shepherd (Domain Lead)** | Experience Domain Lead |
@@ -13,6 +13,8 @@
 > Raised by the Phase 2 hardening pass. Number 0003 reserved; open for review by the Experience Domain Lead and Reviewers. Depends on RFC-0002 (reasoning ledger) for its data substrate — do not advance to Accepted ahead of 0002.
 
 > **Accepted 2026-07-15.** FCP (accept disposition) was called and concluded the same day by the Experience Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. **Acceptance ordering satisfied**: RFC-0002 (its dependency) is accepted in the same change, so 0003 does not precede it. No blocking objections; all FCP-blocking questions resolved (see *Resolved questions*). Becomes **normative on reflection into `spec/`** ([process §8](../process/rfc-process.md)); advances to **Final** once §12's changes land.
+
+> **Final 2026-07-15.** §12 reflected into `spec/` (Books 10 §06, 05 §06, 04 §04, 01 §05) and the Glossary in this change; the RFC is now normative. See CHANGELOG.
 
 ## 1. Executive Summary
 Determinization is declared "safe to attempt" because it is reversible: a determinized `Capability` that drifts is retired and compilation falls back to reasoning ([Book 10 §Ch06 §5](../spec/book-10-experience/06-determinization-engine.md), [Book 05 §Ch06 §4](../spec/book-05-compiler/06-determinization-passes.md)). Drift is defined as the Capability's outputs "diverging **from fresh reasoning**." But once the compiler substitutes the `Reasoning` node with a `CapabilityInvocation` ([Book 05 §Ch06 §2](../spec/book-05-compiler/06-determinization-passes.md)), the model is *no longer called* — so no fresh reasoning is produced to diverge from. The safety net has no data source, and the reversibility guarantee is inert as specified. This RFC introduces **shadow sampling**: a policy-governed fraction of executions that still run the original reasoning alongside the substituted Capability, compare outputs, and feed drift detection — turning reversibility from an assertion into a mechanism.

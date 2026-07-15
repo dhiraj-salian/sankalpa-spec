@@ -1,6 +1,6 @@
 # Book 10 · Chapter 03 — The Capture Pipeline
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P5, P7, P10. Companion to Book 03 §Ch03 (Event Bus), §Ch11 §3 (Experience Manager), Book 11 §09 (audit).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0002 (reasoning ledger), RFC-0004 (terminal-state vocabulary); realizes principles P5, P7, P10. Companion to Book 03 §Ch03 (Event Bus), §Ch11 §3 (Experience Manager), Book 11 §09 (audit).*
 
 > This chapter specifies how an `Experience` is assembled: the Experience Manager subscribes to the Event stream, correlates the Events of one execution into a coherent record, redacts nothing-because-there-is-nothing-to-redact (secrets never arrive), and produces the first-class Experience Resource. Capture is derivation from the commit-consistent Event stream, not a parallel logging path.
 
@@ -26,8 +26,9 @@ Correlation MUST be robust to the Event Bus's delivery semantics (Book 03 §Ch03
 Execution Events stream in (Book 03 §Ch03)
    │  Experience Manager correlates by trace context + reference graph
    ▼
-Assemble Experience.spec (refs/hashes) + record (metrics, reasoning traces)
-   │  on Execution terminal (Succeeded/Failed/Compensated/Cancelled, Book 06 §Ch03 §5)
+Assemble Experience.spec (refs/hashes) + record (metrics, reasoning ledger)
+   │  on Execution terminal (Succeeded/Failed, Book 02 §Ch04 §2; outcome refined
+   │  by conditions: Compensated/Cancelled/CompensationFailed, Book 06 §Ch03 §4)
    ▼
 Finalize: successEval vs. Goal criteria (Ch 07), extract lessons (Ch 02 §5)
    │
@@ -37,7 +38,8 @@ Emit feedback signals: Knowledge candidates (Ch 04), planning/cost updates (Ch 0
 ```
 
 - Capture MAY produce a **partial** Experience while the Execution progresses (for live observability) but **finalizes** it when the Execution reaches a terminal state (Book 02 §Ch03 §6). A terminal Experience is immutable in its factual record (like the Execution it describes); later analysis adds derived artifacts (lessons, candidates) as related Resources, not by rewriting facts.
-- Because the Execution's terminal state is *explained* (Book 06 §Ch03 §4, Book 03 §Ch13 §3), the Experience captures not just success/failure but *how* — what completed, what compensated, what failed and why.
+- Because the Execution's terminal state is *explained* (Book 06 §Ch03 §4, Book 03 §Ch13 §3), the Experience captures not just success/failure but *how* — what completed, what compensated, and (via the `CompensationFailed` condition and its `RemediationTask`) what was left inconsistent and why. Terminal phase is always exactly `Succeeded` or `Failed` (Book 02 §Ch04 §2); `Compensated`, `Cancelled`, and `CompensationFailed` are *conditions* that refine it, never phases.
+- The captured record includes the Execution's **reasoning ledger** (Book 06 §Ch03 §1) — the content-addressed recorded outputs of every `CapturedReasoning`/`Time`/`Random` node. This is the normative substrate that replay is bound to and that determinization discovery (Ch 06) and shadow drift detection (Ch 06 §5) are defined over; it promotes the former informally-described "reasoning traces" to a first-class structure. It is secret-free by the same inheritance as everything else on the stream (§4).
 
 ## 4. Secret-freedom is inherited, not added (P7)
 

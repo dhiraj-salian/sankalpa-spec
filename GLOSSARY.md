@@ -15,6 +15,28 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Execution & replay
+
+- **Fresh execution** — An execution mode in which each `CapturedReasoning` node invokes the model and each `Time`/`Random` effect reads its live input; every such output is recorded to the reasoning ledger. Contrast **Replay-with-record**. (RFC-0002)
+- **Reasoning ledger** — The ordered, append-only, content-addressed, secret-free record on an `Execution` of every `CapturedReasoning`/`Time`/`Random` output, keyed by `(instructionId, invocationIndex)`. The substrate replay is bound to and that determinization discovery and shadow drift detection are defined over. (RFC-0002)
+- **Reconstruction replay** — The replay-with-record variant that performs **no** external effect: every effectful instruction's result is injected from the recorded outcome. Golden-file conformance and audit reconstruction are defined over it; it must be unable to cause any external effect. (RFC-0002)
+- **Re-execution replay** — The replay-with-record variant that re-fires external effects live and therefore re-runs policy and approval checks against current state; never an approval-bypass path. (RFC-0002)
+- **Replay-with-record** — Executing a recorded plan by injecting the reasoning ledger's recorded outputs instead of re-invoking the model (fail-closed on a ledger miss). Has two variants: **Reconstruction** and **Re-execution**. (RFC-0002)
+
+## Determinization health
+
+- **Drift** — Divergence of a determinized Capability's output from what current reasoning would produce (the world changed), measured by shadow sampling under the synthesis-time equivalence bound; sustained drift retires the Capability. (RFC-0003)
+- **Re-validation window** — The period opened when a shadow source's version changes (e.g. a model upgrade), during which confidence re-accrues against the new version instead of the change being counted as drift. (RFC-0003)
+- **Shadow sampling** — Running a determinized Capability's replaced reasoning on a policy-governed, non-blocking fraction of executions to measure drift, without affecting observable behavior. (RFC-0003)
+- **Shadow source** — The identity (`shadowSource`) of the `Reasoning` node a determinized `CapabilityInvocation` replaced, recorded so the runtime can reconstruct and shadow-sample the original reasoning. (RFC-0003)
+- **Version bucket** — A grouping of shadow observations by shadow-source version; retirement decisions aggregate only within a single bucket so a version change re-validates rather than retires. (RFC-0003)
+
+## Failure & remediation
+
+- **Compensation failure** — The condition where a mandated compensation itself fails after exhausting its bounded policy, leaving external state inconsistent; surfaces as a `Failed`/`CompensationFailed` Execution. (RFC-0004)
+- **Remediation task** — The durable, non-droppable `RemediationTask` Resource raised on a compensation failure, carrying the residual inconsistency for operator reconciliation (two-party acknowledgment for high-consequence residuals). (RFC-0004)
+- **Residual inconsistency** — The external state left inconsistent when compensation fails, described by reference (secret-free) in the `CompensationFailed` condition and its remediation task. (RFC-0004)
+
 ## Substrate
 
 - **Kernel** — The microkernel that owns orchestration. Nothing bypasses it; components communicate only via the Kernel API or the Event Bus.

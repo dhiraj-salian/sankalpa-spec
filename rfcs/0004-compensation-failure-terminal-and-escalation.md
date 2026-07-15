@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted |
+| **Status** | Final |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Runtimes & Kernel / Books 06, 03, 02 |
 | **Shepherd (Domain Lead)** | Runtime Domain Lead |
@@ -13,6 +13,8 @@
 > Raised by the Phase 2 hardening pass. Number 0004 reserved; open for review by the Runtime Domain Lead and Reviewers. Shares a replay boundary with RFC-0002 (§4.5).
 
 > **Accepted 2026-07-15.** FCP (accept disposition) was called and concluded the same day by the Runtime Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. No blocking objections; all FCP-blocking questions resolved (see *Resolved questions*). Becomes **normative on reflection into `spec/`** ([process §8](../process/rfc-process.md)); advances to **Final** once §12's changes land.
+
+> **Final 2026-07-15.** §12 reflected into `spec/` (Books 06 §03, 03 §13, 02 §04/§07) and the Glossary, adding the `RemediationTask` core kind, in this change; the RFC is now normative. See CHANGELOG.
 
 ## 1. Executive Summary
 Sankalpa handles partial execution failure with saga-style compensation: on failure, the runtime runs the declared compensating Capability to undo an effect ([Book 06 §Ch03 §4](../spec/book-06-runtimes/03-execution-semantics.md)). But the spec never defines what happens when **compensation itself fails** — the compensating Capability errors, times out, or is non-idempotent and unsafe to retry. The failure taxonomy ([Book 03 §Ch13 §6](../spec/book-03-kernel/13-failure-modes-and-degradation.md)) has no row for it. The result is an execution stranded with inconsistent external state and no defined terminal, no operator surface, and no audit obligation — a silent hole beneath the "no silent partial success" guarantee. This RFC defines a `CompensationFailed` terminal condition, a mandatory escalation path, and the accompanying Event and taxonomy entry.

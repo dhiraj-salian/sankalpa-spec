@@ -1,6 +1,6 @@
 # Book 04 · Chapter 07 — Serialization and Content Addressing
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P6, P13 and IR-P6.*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0002 (reasoning ledger, replay variants); realizes principles P6, P13 and IR-P6.*
 
 > AOS IR must have a single canonical serialization and be identified by the content hash of that form (IR-P6). Content addressing is the mechanism behind caching, deduplication, deterministic replay, and determinization (P13). It only works if serialization is *canonical* — free of incidental variation.
 
@@ -34,7 +34,7 @@ Canonicalization **MUST** be deterministic and total: the same module always yie
 ## 4. What content addressing enables
 
 - **Deduplication.** Identical IR — produced independently by different planners or runs — has one identity and is stored once.
-- **Deterministic replay.** An Execution records the exact Low IR hash; re-running that hash with the same resolved bindings reproduces behavior (IR-P1). Golden-file replay tests (Book 05, Book 10) compare hashes.
+- **Deterministic replay.** An Execution records the exact Low IR hash **and its reasoning ledger** — the content-addressed record of every `CapturedReasoning`/`Time`/`Random` output (RFC-0002, Book 06 §Ch03 §1). Replay reproduces behavior (IR-P1) by injecting those recorded outputs rather than re-invoking the model. Golden-file replay tests (Book 05, Book 10) compare hashes in the **reconstruction** variant, where recorded outputs are injected exactly and no external effect re-fires; the **re-execution** variant instead re-fires effects under live policy (Book 06 §Ch03 §1). Content addressing is what makes "same recorded output" a decidable check for both replay injection and determinization evidence.
 - **Caching of compilation and results.** The compiler caches pass outputs keyed by input hash (Book 05 §03); a `Compilation` (Book 02 §Ch07) need not re-run if its input hash is unchanged.
 - **Determinization (P13).** The determinization engine (Book 05 §06, Book 10 §06) recognizes a recurring reasoning/subgraph *by hash of its inputs and shape* and folds it into a cached Capability. Content addressing is precisely what makes "we have seen this exact work before" a decidable, cheap check.
 
@@ -54,5 +54,5 @@ Because a `SecretRef` is opaque and carries no value (Ch 05 §2.2), the canonica
 2. Canonicalization is deterministic, total, and strips all non-semantic variation (ids, ordering, comments, source positions, encodings) while preserving all semantic structure.
 3. Hashing is structural/recursive (a Merkle-DAG); localized changes cause localized hash changes.
 4. The hash contains no secret material; identity depends on secret *references*, never values (P7).
-5. Content addressing is the basis for deduplication, deterministic replay, compilation/result caching, and determinization.
+5. Content addressing is the basis for deduplication, deterministic replay (via the content-addressed reasoning ledger, injected exactly in reconstruction), compilation/result caching, and determinization.
 6. The canonical form is the wire/storage format; tools canonicalize before hashing or executing.
