@@ -1,6 +1,6 @@
 # Book 09 — Knowledge
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: realizes P2, P6, P10.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: realizes P2, P6, P10.*
 
 ## Scope
 The knowledge system: durable, curated understanding (not short-term memory) that improves future planning. Human-readable knowledge lives in an **Obsidian-compatible vault**; machine-readable knowledge lives in a **graph database**; the two stay synchronized.
