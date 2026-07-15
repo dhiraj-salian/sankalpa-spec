@@ -29,10 +29,13 @@
 | `IRModule` | `ir` | One-shot | Book 04/05 | The IR body + `level: High\|Low`, IR schema version, content hash. | Verification result; derived module. |
 | `Compilation` | `ir` | One-shot | Book 05 | Input IRModule ref; requested passes; target constraints. | Passes run; diagnostics; output refs. |
 | `RuntimeGraph` | `ir` | One-shot | Book 05/06 | Lowered graph; target runtime; secret refs (by reference). | Chosen runtime; validation result. |
-| `Execution` | `core` | One-shot | Book 06 | RuntimeGraph ref; runtime ref; inputs; secret refs. | Progress, metrics, terminal outcome. |
+| `Execution` | `core` | One-shot | Book 06 | RuntimeGraph ref; runtime ref; inputs; secret refs. | Progress, metrics, terminal outcome; **reasoning ledger** (recorded reasoning/`Time`/`Random` outputs, secret-free, RFC-0002). |
 | `Experience` | `core` | Long-lived† | Book 10 | (system-produced) the full record of one Execution. | Lessons; knowledge updates; generated capabilities. |
+| `RemediationTask` | `core` | One-shot | Book 06 | (system-produced on `CompensationFailed`, RFC-0004) refs to the `Failed` Execution, affected effects, and residual external state (by reference, secret-free). | Reconciliation outcomes; acknowledgment record (two-party for high-consequence residuals); `open → acknowledged → resolved`, non-droppable until audited resolution. |
 
 † *Experience outlives the Execution that produced it (Ch 04 §5) and is retained for learning/audit.*
+
+*`RemediationTask` is RFC-0004-gated (P12): it is the durable, non-droppable operator surface for a compensation failure's residual inconsistency. Its full schema is specified in Book 06; escalation and two-party resolution semantics are in Book 06 §Ch03 §4.*
 
 ## 4. Capabilities, workflows, and reuse
 

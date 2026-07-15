@@ -1,6 +1,6 @@
 # Book 06 · Chapter 03 — Execution Semantics
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P1, P3, P5 and IR-P1, IR-P10. Companion to Book 04 §Ch04 (Low IR), Book 03 §Ch13 (failure).*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0002 (replay modes & reasoning ledger), RFC-0004 (compensation failure); realizes principles P1, P3, P5 and IR-P1, IR-P10. Companion to Book 04 §Ch04 (Low IR), Book 03 §Ch13 (failure).*
 
 > This chapter specifies what it *means* to execute a RuntimeGraph correctly: the determinism obligation, idempotency and retries, timeouts, partial-failure and compensation, and how execution progress becomes Events and an Execution Resource. These are the runtime-side counterparts to the `ExecPolicy` the compiler fixed in Low IR.
 
@@ -11,7 +11,13 @@ Execution MUST be **reproducible in its observable behavior**: given the same Ru
 - Executing only what the graph specifies, in a legal order of the schedule's partial order (Book 04 §Ch04 §2) — all legal orders are observationally equivalent by the effect/idempotency contract.
 - Consulting non-determinism **only** where the IR declared it: `CapturedReasoning` nodes (a model call) and `Time`/`Random` effects modeled as explicit inputs (Book 04 §Ch06 §4). The runtime MUST NOT introduce its own clocks, randomness, or ambient state into instruction results.
 
-Where a `CapturedReasoning` node remains (not determinized, Book 05 §Ch06), its non-determinism is confined to that instruction: its typed output is captured and recorded in the Execution/Experience so the run is *auditable and replayable-with-record* even though the reasoning itself was non-deterministic.
+Where a `CapturedReasoning` node remains (not determinized, Book 05 §Ch06), its non-determinism is confined to that instruction: its typed output is captured and recorded so the run is *auditable and replayable-with-record* even though the reasoning itself was non-deterministic. This is the **recorded-reasoning carve-out** to the determinism guarantee (RFC-0002, Book 01 §05 §1); the following makes it normative.
+
+**The reasoning ledger.** Each `Execution` carries, in `status`, an ordered, append-only **reasoning ledger**: a sequence of entries `(instructionId, invocationIndex, canonical-input-hash, recorded typed output, producer identity)`, where `invocationIndex` numbers successive dynamic invocations of the same static instruction (loops, retries). The ledger MUST be secret-free (P7 — recorded outputs are typed values, never secret material) and content-addressed by the canonical hash of each output (Book 04 §Ch07) so "same reasoning output" is decidable — the substrate determinization discovery (Book 10 §06) and shadow drift detection (Book 10 §Ch06 §5) are defined over. The runtime MUST report each recorded output as a typed, secret-free RuntimeEvent (§2 of Book 06 §Ch02) before dependent instructions consume it; the Runtime Manager reflects these into the ledger, preserving P4 (the runtime writes no Resources and publishes to no bus directly).
+
+**Two execution modes.** A runtime executes in one of two modes:
+- **Fresh execution.** Each `CapturedReasoning` node invokes the model (or its determinized Capability if substituted); each `Time`/`Random` effect reads its live typed input. Every such output is recorded to the ledger.
+- **Replay-with-record.** Given a Low IR hash + resolved bindings + reasoning ledger, the runtime MUST NOT invoke the model for any `CapturedReasoning` node present in the ledger; it MUST inject the recorded typed output (and injected `Time`/`Random`), verifying the entry's canonical-input-hash against live inputs and failing closed on mismatch or on a **ledger miss** — never silently falling through to fresh reasoning. Replay has two variants: **reconstruction** performs no external effect (every effectful instruction's result is injected from the recorded outcome; this is what golden-file conformance and audit reconstruction use, and it MUST NOT be able to cause any external effect), while **re-execution** re-fires effects live and therefore re-runs the runtime policy checkpoint (Book 14 §06) and approval checks (Book 11 §07) against current state — replay is never an approval-bypass path. A runtime declaring replay support MUST implement reconstruction.
 
 ## 2. Idempotency and retries
 
@@ -35,6 +41,13 @@ External effects cannot be rolled back by a transaction (there is no cross-Resou
 - **Compensation is mandatory where declared.** A runtime MUST run the specified compensation for a completed, non-idempotent effect when the execution fails or is cancelled — leaving, e.g., a sent message retracted or a created record deleted, per the compensating Capability.
 - A partially-completed execution MUST reach an **explained terminal state** (Book 03 §Ch13 §3): the Execution's status/conditions record what completed, what compensated, and what could not — never a silent partial success.
 
+**When compensation itself fails (RFC-0004).** Compensation runs under its own bounded `ExecPolicy` (retry bounds, timeout), and a `NonIdempotent` compensation is attempted at most once (§2). When a mandated compensation fails after exhausting that policy — the compensator errors, times out, or is unsafe to retry — the Execution MUST reach terminal `Failed` with the distinguished condition **`CompensationFailed`**, whose message records, per effect: what completed, what compensation was attempted, why it failed, and the **residual external state** left inconsistent (by reference, secret-free). It MUST NOT report clean rollback. `CompensationFailed` is a *condition* on the `Failed` phase, never a new phase (Book 02 §Ch04 §2). Additional rules:
+- **Best-effort continuation.** When multiple effects need compensating, failure of one compensator MUST NOT halt the others; the runtime continues best-effort with every remaining independent compensation and records a per-effect outcome (`compensated` / `compensation-failed` / `not-attempted`).
+- **One-level cascade.** A compensator's own compensable effects are not themselves compensated; on its failure they are reported as residual state.
+- **Mandatory escalation.** A `CompensationFailed` terminal MUST emit a high-severity `execution.compensation_failed` Event and operator alert (Book 14 §08), be recorded in the tamper-evident audit trail with full attribution (Book 11 §09), and surface as a durable **`RemediationTask`** (Book 02 §Ch07) — not merely a log line. Resolving a task whose residual touches a high-consequence effect class MUST require two-party acknowledgment (Book 11 §07); lower-consequence residuals MAY be single-party.
+- **Cancellation and approval-deny** (§3, Book 11 §07 §3) both trigger compensation and inherit all of the above when that compensation fails.
+- **Replay interaction.** Reconstruction replay of a `CompensationFailed` execution reproduces the recorded outcome and re-attempts nothing; re-attempting a recorded failed compensation is exclusively the operator-authorized remediation path.
+
 ## 5. Execution as a Resource (P2, P3, P5)
 
 An execution is an **`Execution` Resource** (Book 02 §Ch07), and its semantics follow the ARM lifecycle:
@@ -55,9 +68,9 @@ A subtle but important boundary: Sankalpa guarantees the *observable behavior of
 
 ## 8. Invariants (normative summary)
 
-1. Execution is observably reproducible given equal RuntimeGraph, bindings, and inputs; non-determinism occurs only where the IR declared it and is captured for audit/replay.
+1. Execution is observably reproducible given equal RuntimeGraph, bindings, inputs, **and recorded reasoning/`Time`/`Random` outputs**; non-determinism occurs only where the IR declared it and is captured to the reasoning ledger. Replay-with-record injects recorded outputs (fail-closed on ledger miss); reconstruction performs no effects and defines conformance, re-execution re-fires effects under live policy.
 2. Retries occur only on idempotent/keyed-idempotent instructions and use the key to deduplicate; non-idempotent instructions are never blindly retried.
 3. Timeouts bound every so-declared instruction; cancellation is cooperative and triggers compensation for completed non-idempotent effects.
-4. Partial failure runs the declared saga recovery (compensate/fallback) and reaches an explained terminal state; silent partial success is prohibited.
+4. Partial failure runs the declared saga recovery (compensate/fallback) and reaches an explained terminal state; silent partial success is prohibited. When compensation itself fails, the Execution reaches `Failed`/`CompensationFailed` (a condition, not a phase) with residual state recorded, continues best-effort across remaining compensations, and escalates via a durable `RemediationTask`.
 5. An execution is a one-shot `Execution` Resource with a terminal lifecycle, emitting secret-free Events and owning its Experience; the full intent→experience chain is traceable.
 6. Determinism is relative to declared inputs and effects; external variability enters only through declared effects, keeping replay and determinization sound.

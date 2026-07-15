@@ -4,6 +4,13 @@ All notable changes to the Sankalpa specification are recorded here. The format 
 
 ## [Unreleased]
 
+### Changed
+- **RFCs 0002–0004 reflected into `spec/` and marked `Final`** (Phase 2 hardening set). Normative changes:
+  - **Recorded-reasoning carve-out (RFC-0002)**: the determinism guarantee now explicitly includes recorded `CapturedReasoning`/`Time`/`Random` outputs; introduces the secret-free, content-addressed **reasoning ledger** on `Execution` and two replay modes — **reconstruction** (no effects; defines conformance/golden-file tests) and **re-execution** (effects re-fire under live policy). Touches Books 01 §05, 04 §04/§07, 06 §03, 10 §03.
+  - **Shadow sampling for drift (RFC-0003)**: replaces the inert "diverging from fresh reasoning" language with a policy-governed, non-blocking, version-bucketed shadow-sampling mechanism; adds `shadowSource` to substituted invocations. Touches Books 10 §06, 05 §06, 04 §04, 01 §05.
+  - **Compensation-failure condition (RFC-0004)**: adds the `CompensationFailed` terminal *condition* (not a phase), best-effort continuation, one-level cascade bound, mandatory escalation to a new **`RemediationTask`** core kind (two-party ack for high-consequence residuals), a failure-taxonomy row, and reconciles Book 10's terminal-state vocabulary. Touches Books 06 §03, 03 §13, 02 §04/§07.
+  - New Glossary terms: reasoning ledger, fresh/replay-with-record/reconstruction/re-execution; drift, shadow sampling/source, version bucket, re-validation window; compensation failure, remediation task, residual inconsistency.
+
 ### Added
 - Initial repository scaffold: governance, contribution, and process framework.
 - Templates for RFC, ADR, AEP, implementation plan, testing plan, security review, performance review, design doc.

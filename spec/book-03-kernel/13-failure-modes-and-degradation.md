@@ -1,6 +1,6 @@
 # Book 03 · Chapter 13 — Failure Modes and Degradation
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P1, P3, P4, P7, P8, P9. Companion to Book 07 §05 (controller recovery), Book 14 §08 (operability).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0004 (compensation failure); realizes principles P1, P3, P4, P7, P8, P9. Companion to Book 07 §05 (controller recovery), Book 14 §08 (operability).*
 
 > A decade-scale platform is defined as much by how it *fails* as by how it works. This chapter specifies the Kernel's failure behavior: which invariants hold **even when the core itself is partially broken**, how the system degrades rather than collapses, and how it recovers. The governing rule: **fail safe, degrade gracefully, recover deterministically.**
 
@@ -33,6 +33,7 @@ Executions touch the outside world, so their failure handling is the most delica
 - **Retries require established idempotency.** The Kernel/runtime MUST NOT retry a `NonIdempotent` instruction; only `Idempotent`/`IdempotentWithKey` instructions retry (Book 04 §Ch08 §2.5). A failure of a non-idempotent write surfaces as terminal or triggers **compensation** (saga rollback), never a blind re-run.
 - **Rescheduling is gated.** Moving an Execution to another runtime after a failure is permitted only when the Low IR's idempotency/compensation contract makes re-execution safe (§Ch07 §6).
 - **Partial failure is explained, not hidden.** A partially-completed Execution reaches a terminal `Failed` with conditions describing what completed, what compensated, and what did not (Book 02 §Ch03 §3.5). Silent partial success is prohibited.
+- **Compensation can itself fail.** When a mandated compensation fails after exhausting its bounded policy (the compensator errors, times out, or is non-idempotent), the Execution reaches terminal `Failed` with a distinguished **`CompensationFailed`** condition recording the residual inconsistency, and MUST escalate to a durable `RemediationTask` (Book 06 §Ch03 §4). This is the highest-consequence failure mode — irreversible external inconsistency — so it is made first-class, attributable, and operator-actionable rather than left silent.
 - **At-least-once everywhere.** Because delivery and reconcile are at-least-once (§Ch03 §4, Book 02 §Ch03), *everything downstream must be idempotent*; this is why idempotency is a first-class IR concern rather than an afterthought.
 
 ## 4. Recovery — deterministic, from committed state
@@ -65,6 +66,7 @@ Recovery is therefore **deterministic**: given the committed state, the system c
 | Overload | Backpressure/shed with typed errors; protect in-flight work. |
 | Kernel restart | Recover deterministically from committed state; controllers re-reconcile; consumers resync. |
 | Partition / split-brain | Single-writer via leader election; non-leader stops writing; `resourceVersion` backstops. |
+| Compensation itself fails | Terminal `Failed`/`CompensationFailed` condition recording residual inconsistency; best-effort across remaining compensations; mandatory escalation to a durable `RemediationTask` + high-severity Event + audit (Book 06 §Ch03 §4). |
 
 ## 7. Invariants (normative summary)
 
