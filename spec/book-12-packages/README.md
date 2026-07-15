@@ -1,6 +1,6 @@
 # Book 12 — Packages & Marketplace
 
-*Status: Draft skeleton · Nature: Normative. · Reflects: AEP-0003 (Package format); realizes P6, P11.*
+*Status: **Draft-complete** (all chapters authored) · Nature: Normative. · Reflects: AEP-0003 (Package format); realizes P6, P11.*
 
 ## Scope
 Distribution and ecosystem: the Package format, dependency and version resolution, signing and provenance, installation lifecycle, and the Marketplace. Everything extensible ships as a Package.
