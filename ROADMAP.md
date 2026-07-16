@@ -8,11 +8,12 @@ The project's north star: **transform human intent into deterministic execution*
 
 Each phase ends at a **gate** with explicit exit criteria. We do not advance a phase because time passed; we advance because criteria are met.
 
-### Phase 0 — Research (in progress)
+### Phase 0 — Research (complete, out of order)
 Study the systems worth learning from and the patterns worth reusing. **No implementation, no normative spec.** Output: [`research/`](research/README.md) documents.
-- **Prior art:** Linux, LLVM, Kubernetes, Temporal, Git, Terraform, Docker, Cloudflare Workers, PostgreSQL, Rust.
+- **Prior art:** Linux, LLVM, MLIR, Kubernetes, Temporal, Git, Terraform, Docker, Cloudflare Workers, PostgreSQL, Rust.
 - **Patterns:** compiler design, DDD, CQRS, hexagonal architecture, microkernel architecture, event sourcing, capability-based security.
 - **Exit criteria:** every prior-art and pattern study has an accepted summary with explicit "what we adopt / what we reject / why" sections.
+- **Status:** all 18 studies `Accepted`, each carrying the required sections. **The criterion is met; the gate's purpose is not.** These were authored *after* Phases 1–2, so they did not inform the design they describe, and they were accepted without independent review (every Domain Lead is vacant). [`research/README.md`](research/README.md#provenance-and-its-limits) records both limits. This is the one gate the project advanced through by time passing rather than by criteria being met in sequence — noted here rather than quietly closed, since §"Phase gates" above claims we do not do that.
 
 ### Phase 1 — Author the specification
 Produce the complete normative spec in [`spec/`](spec/README.md): all 16 Books, seeded RFCs/ADRs/AEPs, resource model, kernel/compiler/controller/event/package/knowledge/security specs, API specs, diagrams.
