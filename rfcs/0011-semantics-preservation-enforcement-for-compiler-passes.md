@@ -1,0 +1,119 @@
+# RFC-0011: Semantics-preservation enforcement for compiler passes — giving IR-P10 a mechanism
+
+| Field | Value |
+|-------|-------|
+| **Status** | Draft |
+| **Authors** | Dhiraj Salian (Phase 2 hardening review) |
+| **Domain / Book** | Compiler & AOS IR / Books 05, 04 |
+| **Shepherd (Domain Lead)** | Compiler/Runtime Domain Lead |
+| **Created** | 2026-07-16 |
+| **Supersedes / Superseded by** | — |
+| **Tracking issue** | TBD |
+
+> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. Second batch (0005–0011). Touches the determinization safety gates that RFC-0003 relies on.
+
+## 1. Executive Summary
+Semantics preservation is a named IR principle (**IR-P10**) and the compiler's transform contract: *"the optimized/lowered module, executed with equal inputs and resolved bindings, produces the same observable effects and outputs as the original"* ([Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md)). The spec claims it is **enforced**:
+
+> *"The framework **enforces** this defensively: after the pass pipeline, and again after lowering, the output is **re-verified** … A pass that produces IR failing verification — **or that a semantics-preservation check flags** — is rejected … **Trust is never extended to a pass's claim of correctness; it is checked.**"* ([Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md))
+
+**No such check exists.** Nothing in `spec/` defines a "semantics-preservation check", a semantic-equivalence check, or any comparison of a pass's output against its input. The checks that *are* specified ([Book 05 §Ch05 §5](../spec/book-05-compiler/05-lowering-framework.md)) are exactly two — Low IR **re-verification** and **RuntimeGraph conformance** — and both are **predicates on a single artifact**. Verification is definitionally so: *"a **total function** over IR"* that *"either accepts **a module** or produces a precise diagnostic"* and checks *"**well-formedness** (is this valid IR?)"* ([Book 04 §Ch08 §1/§2/§3](../spec/book-04-aos-ir/08-verification.md)). **The original module is never consulted.**
+
+Consequently a transform pass — which may be **untrusted third-party code** ([Book 05 §Ch02](../spec/book-05-compiler/02-pass-framework.md), P11) — that emits a **well-formed, well-typed, correctly-effect-declared, deterministic, secret-safe, conformant** module with **different semantics** passes every specified gate and executes. The stated conclusion *"Optimizations are … **safe by construction**: even a buggy optimization pass **cannot corrupt a compilation** — at worst it is rejected"* ([Book 05 §Ch03 §5](../spec/book-05-compiler/03-optimization-passes.md)) is false, and *"trust is never extended to a pass's claim of correctness"* is exactly inverted: it is extended entirely.
+
+This RFC gives IR-P10 a real mechanism, using the spec's own honest technique for undecidable properties: **(a)** a mandatory, decidable **effect-graph conservation check** that actually compares output to input and catches the dominant defect class; **(b)** optional **translation validation** (a per-compilation equivalence certificate checked by a small trusted validator) for passes that opt in; **(c)** a **declarative rewrite-rule framework** so most passes are preserving by construction; and **(d)** an honest restatement of the claims above.
+
+## 2. Problem Statement
+The compiler is the component that turns a verified plan into what actually runs, for a platform whose mission is faithful intent→execution. A silently-wrong-but-valid plan is the worst failure mode it has: every effect is declared, authorized, policy-passed, and audited — and wrong.
+
+- **The cited check is undefined.** A repository-wide search finds no definition of a semantics-preservation check, semantic equivalence, translation validation, or refinement anywhere in `spec/`. [Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md) references a mechanism that does not exist; [Book 05 §Ch05 §5](../spec/book-05-compiler/05-lowering-framework.md)'s "Semantics-preservation checks" heading enumerates only single-artifact checks.
+- **Verification cannot, even in principle, catch it.** [Book 04 §Ch08](../spec/book-04-aos-ir/08-verification.md) is a total predicate over *one* module. `verify(out)` says nothing about `out ≡ in`. Deciding equivalence of two arbitrary modules is undecidable (Rice), so re-verification is not a weakened version of the missing check — it is a **different check entirely**.
+- **The defect class is ordinary, not exotic.** A pass that: deduplicates two `CapabilityInvocation`s whose arguments it wrongly judged equal; reorders two effectful writes whose order is observable; fuses loop bodies changing per-item effects; drops a branch it wrongly proved dead; or narrows a `Loop` bound — produces output that satisfies structural well-formedness, typing, effect declaration, determinism constraints, secret-safety, and RuntimeGraph conformance. Every specified gate passes.
+- **Untrusted passes make it a security problem, not just a correctness one.** Passes and backends are plugins ([Book 05 §Ch02](../spec/book-05-compiler/02-pass-framework.md), [Book 11 §Ch10](../spec/book-11-security/10-plugin-isolation.md)). [Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md) claims *"a plugin cannot smuggle non-determinism, an undeclared effect, or a secret into the system by producing bad output — the output is checked at the boundary."* True for those three properties. **A malicious pass does not need any of them**: it emits a perfectly well-formed module that invokes a *different, fully-declared, fully-authorized* Capability — e.g. rewriting the payee of an already-approved transfer. Isolation, least-privilege, and re-verification are all silent, because the output is *valid*; only its *meaning* changed.
+- **The strictest pass depends on the phantom.** Determinization *"changes what executes, so it is gated harder than any optimization"* — and gate 6 is *"Verification backstop. The substituted module is re-verified **and semantics-checked (Ch 02 §4)**"* ([Book 05 §Ch06 §3](../spec/book-05-compiler/06-determinization-passes.md)). Its backstop is a check that does not exist. (Substitution's *intended* semantic change is evidence-gated by RFC-0003; the point here is that its *unintended* changes are unguarded.)
+- **The spec already knows how to do this honestly.** For the halting problem it says: *"Verification does not solve the halting problem; it requires that potentially-unbounded constructs are declared as such, **turning an undecidable question into a checkable annotation**"* ([Book 04 §Ch08 §2.6](../spec/book-04-aos-ir/08-verification.md)). That is precisely the discipline missing for IR-P10 — the principle is asserted as enforced instead of being reduced to something checkable.
+
+Cost of doing nothing: IR-P10 is decorative; the compiler's trust story is inverted from what it claims; a buggy or hostile pass silently changes what a governed, approved plan does; and the platform's central promise — that what executes is what was intended and verified — has no mechanism behind it at the one stage that rewrites the plan.
+
+## 3. Alternatives Considered
+- **Do nothing.** Rejected: leaves a named IR principle unenforced, two normative claims false, and the determinization backstop pointing at nothing.
+- **Implement a general semantic-equivalence checker.** Rejected: undecidable for arbitrary modules; any "general" implementation would be an approximation whose failures are silent — recreating today's false confidence with more machinery.
+- **Trust passes; rely on testing/review.** Rejected: contradicts the platform's explicit posture (*"Trust is never extended to a pass's claim of correctness"*, [Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md); *"verify, don't trust"*, [Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md)) and fails outright for third-party passes.
+- **Forbid third-party passes (core-only pipeline).** Rejected: contradicts P11 and [Book 05 §Ch02](../spec/book-05-compiler/02-pass-framework.md)'s explicit accommodation of third-party passes; also does not help — the *core's own* passes are the ones with the most rewriting power and are equally unchecked.
+- **Layered: mandatory decidable conservation check + optional per-instance validation + rewrite-rule framework (chosen).** Mirrors the spec's own undecidability discipline ([Book 04 §Ch08 §2.6](../spec/book-04-aos-ir/08-verification.md)) and established compiler practice — translation validation (Pnueli et al.; CompCert; Alive/Alive2 for LLVM, a named Phase 0 prior-art study, [`research/prior-art/`](../research/prior-art/README.md)). Nothing claims to decide the undecidable; each layer states exactly what it catches.
+
+## 4. Proposed Design
+**4.1 Effect-graph conservation — mandatory, decidable, comparative (normative).** After every transform pass, the pass framework **MUST** compute and compare the **effect graph** of the input and output modules: the multiset of externally-visible effects ([Book 04 §Ch06](../spec/book-04-aos-ir/06-effect-system.md)) together with their observable dependency order. The transform is **rejected** unless:
+- **Conservation.** The output's externally-visible effect multiset equals the input's, except for effects the pass **declares removed as provably dead** — which are permitted only where [Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md) already allows (an effect no observable output depends on, itself pure/idempotent-safe to drop) and the pass supplies the dependency witness (§4.2).
+- **Order.** For any two effects with an observable ordering dependency in the input, the output preserves that order.
+- **Target identity.** Each conserved effect's declared target/scope ([Book 04 §Ch06](../spec/book-04-aos-ir/06-effect-system.md)) is unchanged. This is what catches the payee-rewrite and wrong-dedup classes: the *count and shape* survive, but identity does not.
+- **Monotonicity.** The output's effect declaration is not weakened (already required; now checked comparatively rather than assumed).
+
+This is decidable, cheap, and — critically — the **first check in the specification that consults the original module**. It is a **necessary, not sufficient**, condition (§4.5).
+
+**4.2 Pass obligations become checkable artifacts (normative).** Where [Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md) currently states obligations a pass "MUST NOT" violate, each becomes an artifact the framework checks:
+- A pass that removes an effect **MUST** emit a **dead-effect witness** (the dataflow fact establishing no observable output depends on it). No witness ⇒ removal rejected. This applies the [Book 04 §Ch08 §2.6](../spec/book-04-aos-ir/08-verification.md) technique: an undecidable *"is this really dead?"* becomes a checkable *"show your witness."*
+- A pass that reorders/dedups/fuses **MUST** declare the analysis fact it relied on; the framework re-checks the fact against the input (facts are small and decidable — alias/dependency/purity), never trusting the pass's assertion.
+
+**4.3 Translation validation — opt-in, per-compilation (normative, optional).** A pass **MAY** declare `validated: true` and emit, per compilation, an **equivalence certificate** for *this* input/output pair, checked by a **small trusted validator** in the core. This is decidable per instance (it validates one concrete rewrite, not all possible ones) and is the established answer from the compiler literature. Certificate-checked passes are exempt from nothing — §4.1 still applies — but a workspace policy ([Book 11 §Ch06](../spec/book-11-security/06-policy-engine.md)) **MAY** require `validated: true` for passes permitted to run on high-consequence plans, giving operators a real dial.
+
+**4.4 Rewrite-rule framework — preserving by construction (normative direction).** The framework **SHOULD** provide a library of declarative rewrite rules, each proven semantics-preserving **once**, which passes compose rather than emitting arbitrary IR. A pass built only from library rules is preserving by construction and needs no certificate. This is the long-run answer for the common case and shrinks arbitrary-IR-emission to the passes that genuinely need it.
+
+**4.5 Honest restatement of the guarantee (normative).** The following are corrected to what is actually true:
+- [Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md): replace *"or that a semantics-preservation check flags"* (undefined) with the §4.1 conservation check plus §4.2 witnesses, and state that **conservation is necessary, not sufficient**: it catches added/removed/reordered/duplicated/retargeted effects, and does **not** decide full equivalence. Absent a §4.3 certificate, a pass's *internal* value-level correctness is **not** verified.
+- [Book 05 §Ch03 §5](../spec/book-05-compiler/03-optimization-passes.md): retract *"safe by construction: even a buggy optimization pass cannot corrupt a compilation"*. The true statement: a buggy pass cannot introduce an *undeclared* effect, non-determinism, ill-typing, or a secret leak, and cannot alter the *effect graph* undetected — but absent a certificate it **can** still produce a valid module whose internal computation is wrong.
+- [Book 05 §Ch05 §5](../spec/book-05-compiler/05-lowering-framework.md): re-verification and RuntimeGraph conformance are single-artifact checks; the comparative check is §4.1.
+- [Book 05 §Ch06 §3](../spec/book-05-compiler/06-determinization-passes.md) gate 6: point the backstop at §4.1/§4.3 rather than the phantom, and note substitution's *intended* semantic change is governed by evidence (RFC-0003) while its *unintended* changes are caught by conservation.
+- [Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md): bound the "cannot smuggle" claim — a pass cannot smuggle non-determinism, an undeclared effect, or a secret; it **can** attempt a semantic change, which §4.1 catches at the effect graph and §4.3 catches within it.
+
+## 5. Tradeoffs
+**Gain:** IR-P10 acquires a mechanism; the first comparative (input↔output) check enters the pipeline; the dominant defect class — added/removed/reordered/duplicated/retargeted effects, including the malicious retarget — is caught; the determinization backstop becomes real; untrusted passes stop being trusted on their own say-so; operators get a policy dial (`validated: true`) for high-consequence plans; and the spec's claims become true.
+**Give up:** every transform pays an effect-graph diff; passes must emit witnesses for removals and analysis facts for reorderings (a real authoring burden, and a breaking change to the pass contract); translation validation is substantial to implement for the passes that adopt it; and the platform must state a more modest guarantee than "safe by construction."
+
+## 6. API Changes
+- Pass framework contract ([Book 05 §Ch02](../spec/book-05-compiler/02-pass-framework.md)): a transform returns `(module, witnesses, analysisFacts)` instead of `module`; optional `certificate` when `validated: true`. This is a **breaking change to the pass interface** (pre-1.0, §13).
+- `describe()`-style pass metadata declares `validated` and the rewrite-rule library version used ([Book 03 §Ch08](../spec/book-03-kernel/08-compiler-manager.md)).
+- No Kernel API change; the checks live in the Compiler Manager's pipeline ([Book 03 §Ch08 §3](../spec/book-03-kernel/08-compiler-manager.md)).
+
+## 7. Resource Changes
+`Compilation` ([Book 02 §Ch07](../spec/book-02-resource-model/07-core-resource-catalog.md)): additive `status` reasons `SemanticsConservationFailed` and `MissingWitness`, and a per-pass record of whether it was certificate-validated (feeding audit and the policy dial). No lifecycle change — a failing pass fails the `Compilation` as today, with a precise diagnostic ([Book 05 §Ch07](../spec/book-05-compiler/07-diagnostics-and-errors.md)).
+
+## 8. Event Changes
+Additive, secret-free (P5): `compilation.pass_rejected` (with reason: conservation violation / missing witness / invalid certificate, naming the pass and the effect diff **by reference and hash**, never plan contents beyond what Events already carry). Per-subject ordering on the `Compilation` subject suffices ([Book 03 §Ch03 §5](../spec/book-03-kernel/03-event-bus.md)). Repeated rejections from a pass are a systematic-weakness signal ([Book 05 §Ch07](../spec/book-05-compiler/07-diagnostics-and-errors.md)).
+
+## 9. Security Impact
+This closes a **plugin-boundary hole** ([Book 11 §Ch02 B2](../spec/book-11-security/02-trust-boundaries.md), [Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md)): a malicious pass currently needs no undeclared effect, no non-determinism, and no secret to do harm — it retargets a declared, approved effect and every gate passes. §4.1's target-identity conservation is the direct defense; §4.3 extends it inside the computation. Note the interaction with approval ([Book 11 §Ch07](../spec/book-11-security/07-approval-engine.md)): an `Approval` instruction is lowered *into* the plan and shows the human the *declared* consequence — so a post-approval pass that retargets an effect would have the human approve one thing and the runtime do another. Conservation makes that rewrite detectable. Add to the SI checklist ([Book 11 §Ch11](../spec/book-11-security/11-security-invariants.md)): *a transform's externally-visible effect graph — multiset, order, and target identity — is conserved against its input, or the transform is rejected.* Security review required.
+
+## 10. Performance Impact
+The effect-graph diff is O(effects) per pass — small relative to the analyses passes already run, and effect sets are far smaller than node counts. Content addressing ([Book 04 §Ch07](../spec/book-04-aos-ir/07-serialization-and-content-addressing.md)) allows memoizing sub-graph effect summaries, so the diff is incremental for large modules reusing verified sub-graphs. Witness re-checking is decidable and local. Translation validation is expensive and therefore opt-in and policy-scoped (§4.3).
+
+## 11. Testing Strategy
+- **Adversarial pass suite** (the core of this RFC): passes that (a) retarget a declared effect (payee rewrite), (b) dedup two distinct invocations, (c) reorder two observably-ordered writes, (d) drop a live branch, (e) remove an effect without a witness. Each emits a **fully valid** module; each **MUST** be rejected by §4.1/§4.2 — and each **MUST** be demonstrated to pass today's re-verification, documenting the gap this RFC closes.
+- Non-regression: correct passes (fusion, dead-code elimination with witness, cost-driven choice among equivalent options, [Book 05 §Ch03](../spec/book-05-compiler/03-optimization-passes.md)) pass unchanged, no false positives.
+- Determinization: gate 6 now invokes a real check; an unintended collateral rewrite alongside a substitution is caught.
+- Certificate path: an invalid/forged certificate is rejected by the trusted validator; `validated: true` is not self-asserted trust.
+- Honest-limits test: a pass with a conserved effect graph but a wrong *internal value computation* and **no** certificate is documented as **not caught** — asserting the §4.5 scope so no reader mistakes conservation for equivalence.
+
+## 12. Documentation Changes
+Rewrite [Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md) (conservation check, witnesses, analysis facts, honest scope); retract/replace the "safe by construction" claim in [Book 05 §Ch03 §5](../spec/book-05-compiler/03-optimization-passes.md); correct [Book 05 §Ch05 §5](../spec/book-05-compiler/05-lowering-framework.md) (single-artifact vs. comparative); repoint [Book 05 §Ch06 §3](../spec/book-05-compiler/06-determinization-passes.md) gate 6; bound [Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md)'s claim; note in [Book 04 §Ch02](../spec/book-04-aos-ir/02-ir-design-principles.md) that IR-P10 is enforced by conservation + optional validation, not by verification. New Glossary entries: *Effect-graph conservation*, *Dead-effect witness*, *Translation validation*, *Equivalence certificate*. Add the LLVM/Alive translation-validation study to [`research/prior-art/`](../research/prior-art/README.md) (already a named Phase 0 target).
+
+## 13. Migration Strategy
+Pre-1.0, and the pass-contract change is **breaking** (§6) — the one place this batch cannot be purely additive, because the current contract cannot express a witness. Staged: (1) framework computes the conservation diff and **warns**; (2) witnesses become required for effect removal; (3) conservation violations become rejections; (4) `validated: true` becomes available and policy-selectable. Each stage is a named milestone per [`process/versioning-and-stability.md`](../process/versioning-and-stability.md). No stored artifact changes meaning; already-compiled Low IR and its hashes are untouched.
+
+## 14. Risks
+- **Conservation mistaken for equivalence.** The central risk, and the same one RFC-0010 §4.5 manages: a *necessary* condition can read as sufficient. Mitigated by normative scope text (§4.5), the §11 honest-limits test, and retracting "safe by construction" rather than restating it more quietly.
+- **Witness burden pushes authors toward no-op passes** or toward over-declaring effects to dodge removal witnesses — watch for effect-declaration inflation in review.
+- **Legitimate transforms that legitimately change the effect graph.** Determinization removes `Reason` ([Book 05 §Ch06](../spec/book-05-compiler/06-determinization-passes.md)); some lowerings split one high-level effect into several. §4.1 must define conservation **modulo the declared lowering relation**, not naive multiset equality, or it will reject correct work — the main design risk, flagged for the reflecting PR.
+- **Trusted-validator size.** §4.3's validator joins the trusted core ([Book 03 §Ch04](../spec/book-03-kernel/04-managers-overview.md)); it must stay small enough to be worth trusting, or it merely relocates the problem.
+
+## 15. Future Improvements
+Grow the §4.4 rule library until arbitrary-IR-emitting passes are the exception; mechanized proofs for the rule library (CompCert-style) so the core's own passes are preserving by construction; extend conservation to the backend's RuntimeGraph lowering ([Book 05 §Ch05](../spec/book-05-compiler/05-lowering-framework.md)), where the same single-artifact-only gap exists one level down.
+
+---
+### Resolved questions
+*(none yet)*
+
+### Unresolved questions
+- How should conservation be defined **modulo lowering** (§14) — an explicit declared effect-refinement relation per lowering stage, or a stage-specific conservation rule?
+- Should `validated: true` be **required** for any pass that runs after the `Approval` instruction is lowered in (§9's approve-one-thing/do-another concern), rather than left to policy?
+- Does the same comparative gap exist for the **backend** (Low IR → RuntimeGraph)? [Book 05 §Ch05 §5](../spec/book-05-compiler/05-lowering-framework.md)'s RuntimeGraph conformance checks the output's properties, not its correspondence to the Low IR — suggesting a companion finding rather than a sub-case.
