@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Security & Observability / Books 11, 14 (and 06, 03) |
 | **Shepherd (Domain Lead)** | Security Domain Lead |
@@ -11,6 +11,8 @@
 | **Tracking issue** | TBD |
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0010 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011). Reinforces the secret-freedom of the RFC-0002 reasoning ledger and composes with RFC-0005 (secret materialization stability).
+
+> **Accepted 2026-07-16.** FCP (accept disposition) was called and concluded the same day by the Security Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. No blocking objections; all design questions resolved (see *Resolved questions*), and the review pass fixed the defects it found. Per [process §8](../process/rfc-process.md) this RFC becomes **normative only on reflection into `spec/`**; status advances to **Final** once the Documentation Changes (§12) land in Books 03 §12, 06 §02/§03, 11 §02/§10, 14 §04 and the Glossary.
 
 ## 1. Executive Summary
 The spec makes secret-freedom of observability a **hard, enforced** guarantee: *"no secret value is ever logged — anywhere, at any level, by any component … a hard guarantee, not a best-effort redaction"* ([Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md)), *"This is **enforced, not merely intended**"* ([Book 03 §Ch12 §2](../spec/book-03-kernel/12-observability-manager.md)). Its stated basis is that *"there is nothing secret to log on those paths"* — the Observability Manager *"operates on the **already-secret-free** Event stream"* ([Book 03 §Ch12 §3](../spec/book-03-kernel/12-observability-manager.md)).
