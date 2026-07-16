@@ -29,6 +29,7 @@ Policy rules evaluate structured, **non-secret** facts:
 - **Types & data classifications** — e.g. "no Capability tagged `pii-export` for workspace W."
 - **Cost & quota** — budgets and rate limits.
 - **Context** — workspace, submitter role, time, approval state.
+- **Grant re-authorization thresholds** (Book 12 §Ch05 §3.1) — when a Package upgrade may carry grants forward versus require fresh consent: e.g. "always re-consent `payments`", "re-consent on MAJOR", "auto-carry same-key patch". Absent or undecided policy is **fail-safe**: re-authorize on any signing-identity change and for any sensitive-class capability.
 
 Policy MUST NOT require secret values to evaluate (P7); it governs secret *use* by reference and class.
 

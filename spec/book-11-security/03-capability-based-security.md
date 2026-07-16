@@ -1,6 +1,6 @@
 # Book 11 · Chapter 03 — Capability-Based Security
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principle P8 (and P9). Companion to Book 03 §Ch06 (Capability Manager).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0008 (grants bind to verified identity); realizes principle P8 (and P9). Companion to Book 03 §Ch06 (Capability Manager).*
 
 > Principle **P8 — no ambient authority** is the backbone of Sankalpa's authorization model. This chapter specifies *capability-based security*: authority as unforgeable references to specific actions, granted explicitly, attenuated for delegation, and revocable. It is the model that makes untrusted plugins safe to run and unauthorized effects impossible. The *component* that implements it is the Capability Manager (Book 03 §Ch06); this chapter specifies the *security model* it enforces.
 
@@ -17,6 +17,7 @@ Properties a capability MUST have:
 - **Specific.** It authorizes a *particular* action with a bounded signature and effect set (Book 04 §Ch05–06) — not a category of power.
 - **Transferable only by explicit delegation** (§4) — and only attenuating.
 - **Revocable** (§5).
+- **Bound to the grantee identity it was authorized against.** A grant records the **authorized-against identity** — for a Package (Book 12 §Ch05 §3), its version, publisher identity, and signing-key/artifact identity (Book 12 §Ch04). Authority is conveyed to the *verified code that was authorized*, not to a name in perpetuity, so substituting the code re-opens the authorization question (Book 12 §Ch05 §3.1). Without this, "explicit grant" would be defeated by the ordinary upgrade path: a compromised or newly-transferred publisher could ship different code under the same name and inherit sensitive authority no one reviewed.
 
 ## 3. No authority without a grant
 
@@ -62,7 +63,7 @@ Capability security is the linchpin that reconciles Sankalpa's ambitions with it
 ## 8. Invariants (normative summary)
 
 1. Authority is capability-based, never ambient: identity/membership alone confers no permission (P8).
-2. A capability is an unforgeable, specific, revocable reference that both designates an action and conveys authority to perform it.
+2. A capability is an unforgeable, specific, revocable reference that both designates an action and conveys authority to perform it, and is bound to the verified grantee identity it was authorized against — substituting the grantee's code re-opens the authorization question (Book 12 §Ch05 §3.1).
 3. Every effect requires a held grant covering the request's signature and effects; holding one capability conveys no authority over any other; there is no transitive escalation.
 4. Delegation is by attenuation only — derived capabilities are strict subsets; amplification is impossible.
 5. Revocation is prompt and complete; no new invocation succeeds under a revoked grant.
