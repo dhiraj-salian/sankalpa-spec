@@ -1,6 +1,6 @@
 # Book 05 · Chapter 05 — Lowering Framework
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P1, P7, P11 and IR-P7, IR-P10.*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0011 (conservation modulo refinement); realizes principles P1, P7, P11 and IR-P7, IR-P10.*
 
 > Lowering is where the compiler *decides execution mechanics*. It happens in two stages: **High → Low** (owned by the compiler, runtime-agnostic) and **Low → RuntimeGraph** (owned by a runtime **backend**, runtime-specific). This chapter specifies both, the backend interface, and the semantics-preservation obligation that ties a runtime-agnostic plan to a concrete execution.
 
@@ -50,12 +50,16 @@ Low IR names no runtime (Book 04 §Ch04 §7); runtime **selection** happens afte
 
 ## 5. Semantics-preservation checks
 
-Because lowering is where an abstract plan becomes a concrete execution, it is checked twice over:
+Because lowering is where an abstract plan becomes a concrete execution, it is checked from two directions — and the difference between them is load-bearing:
 
+**Single-artifact checks** (properties of the output alone):
 1. **Low IR is re-verified** after compiler lowering (Book 04 §Ch08; Book 03 §Ch08 §3) — structure, types, effects, secret-safety, and the Low-IR-specific determinism constraints (retry↔idempotency, `onError` presence).
 2. **RuntimeGraph conformance** — the backend's output is checked against a conformance contract (Book 06 §07): it must preserve the declared effects, honor the `ExecPolicy`, and resolve bindings only at execution. A backend whose RuntimeGraph fails conformance is rejected and not executed.
 
-Trust is never extended to a backend's claim of fidelity; it is verified — the same discipline applied to every extension (Book 03 §Ch09 §2).
+**The comparative check** (output against input):
+3. **Effect-graph conservation** (§Ch02 §4.1) applies to the High→Low stage like any transform, evaluated modulo the **declared effect-refinement relation** for lowering — since a lowering may legitimately split one high-level effect into several, and an *undeclared* graph change is a rejection.
+
+Trust is never extended to a backend's claim of fidelity; it is verified — the same discipline applied to every extension (Book 03 §Ch09 §2). But note precisely how far that reaches for the **backend**: checks 1–2 are properties *of the output*, not of its correspondence to the Low IR it lowered from. A backend has, one level down and closer to execution, the same freedom §Ch02 §4 describes for a pass. Extending conservation across the Low IR→RuntimeGraph boundary requires a RuntimeGraph effect model in addition to the declared refinement relation, and is recorded as a companion finding (RFC-0011 *Resolved questions*) rather than assumed here — naming the gap is better than implying checks 1–2 close it.
 
 ## 6. Secrets across lowering (P7)
 
