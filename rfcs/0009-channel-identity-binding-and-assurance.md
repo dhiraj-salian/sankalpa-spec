@@ -98,9 +98,9 @@ Continuous/step-up assurance (re-prompt for high-assurance when risk rises mid-C
 
 ---
 ### Resolved questions
-*(none yet)*
+- **Fixed core ordinal or policy-extensible lattice?** A **fixed core ordinal** (`low` < `medium` < `high`) for v1, with each channel declaring its **maximum** attainable level (§4.2). Assurance exists to *cap authority*, which requires levels to be **totally ordered and comparable** — "minimum assurance for this consequence class" (§4.3) is only decidable against a total order. A policy-extensible lattice would make two workspaces' "medium" incomparable and turn a security gate into an ambiguity. Extensibility is deferred until a concrete case demands it.
+- **`ChannelBinding` per-workspace or per-`User` globally?** **Workspace-scoped** — keyed `(User, workspace, channelKind, channel-native-id)`. A binding is an authority-bearing fact, and authority is tenant-scoped ([Book 11 §Ch08 §5](../spec/book-11-security/08-identity-users-sessions.md)); a global binding would let a handle verified in workspace A silently carry authority into B, exactly the silent cross-tenant flow **B6** prohibits ([Book 11 §Ch02 B6](../spec/book-11-security/02-trust-boundaries.md)). The *proof of control* may be reused across a user's workspaces (the handle is the same handle) — but each workspace records its own binding, so revocation in one never depends on another.
+- **Is voice caller-ID ever above `low`?** **No — always `low`**; voice always steps up for consequential actions (§4.3). Caller-ID is trivially spoofable, and the voice path adds transcription ambiguity between what was said and what became an `Intent` ([Book 13 §Ch03](../spec/book-13-interfaces/03-reference-channels.md)) — so it is weak evidence of *who* and of *what*. Voice remains fully usable for origination; only the consequential action requires the Web Runtime step-up.
 
 ### Unresolved questions
-- Should the assurance taxonomy be a fixed core ordinal (`low`/`medium`/`high`) or a policy-extensible lattice mapped from per-channel declarations?
-- Should a `ChannelBinding` be per-workspace or per-`User`-across-workspaces (a user's Telegram handle is the same globally, but authority is tenant-scoped, [Book 11 §Ch08 §5](../spec/book-11-security/08-identity-users-sessions.md))?
-- For voice channels ([Book 13 §Ch03](../spec/book-13-interfaces/03-reference-channels.md)), is caller-ID ever above `low` assurance, or must voice always step up for consequential actions?
+*(none — all resolved ahead of review)*

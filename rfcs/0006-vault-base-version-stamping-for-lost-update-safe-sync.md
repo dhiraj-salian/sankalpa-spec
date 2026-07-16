@@ -103,9 +103,9 @@ Field-level conflict markers rendered inline in the note (git-style) for human r
 
 ---
 ### Resolved questions
-*(none yet)*
+- **Record `generation` as well as `resourceVersion`?** Yes — **both**, per §4.1. They answer different questions: `resourceVersion` is the CAS token for the write ([Book 02 §Ch08 §2](../spec/book-02-resource-model/08-storage-and-consistency.md)) and advances on *any* write including status-only; `generation` advances **only on `spec` change** ([Book 02 §Ch02 §4](../spec/book-02-resource-model/02-resource-anatomy.md)). The three-way merge cares about *content* divergence, so `generation` is what distinguishes "the graph meaningfully changed" from "a status-only write happened" — without it, routine status writes would manufacture spurious conflicts. Use `generation` to decide fast-forward vs. merge; use `resourceVersion` for the CAS.
+- **Where does the base *content* live?** A controller-side **last-synced cache**, with reconstruction from the versioned store / Event history as fallback, and the §4.3 fail-safe as the floor. The cache is fast but explicitly **not authoritative**: a cache miss attempts reconstruction, and if the base content cannot be established the base is **unknown** and §4.3 applies (conflict-surface, never blind-overwrite). This reuses the existing fail-safe rather than inventing a new failure mode, so cache eviction degrades to safe-but-noisier, never to data loss.
+- **Conflicted Knowledge: excluded from planning, or lowered trust?** **Excluded** from planning retrieval ([Book 09 §Ch06](../spec/book-09-knowledge/06-knowledge-in-planning.md)) until resolved. Trust weighting answers *"how much should this count?"*; a conflicted unit is not low-trust but **indeterminate** — the system does not know which assertion is true. Feeding an indeterminate fact in at reduced weight still lets a possibly-wrong assertion shape a plan. Fail-closed and surface it, consistent with §Ch05 §4's "never left quietly inconsistent."
 
 ### Unresolved questions
-- Should `syncedFrom` record `generation` (spec-version) in addition to `resourceVersion`, so a status-only advance (which does not bump `generation`, [Book 02 §Ch08 §3](../spec/book-02-resource-model/08-storage-and-consistency.md)) is distinguished from a spec change when deciding fast-forward vs. merge?
-- Where should the base *content* live for the three-way merge — a controller-side last-synced cache, or reconstructed on demand from the versioned store / Event history (§14)?
-- Should a conflicted Knowledge unit be *excluded* from planning retrieval ([Book 09 §Ch06](../spec/book-09-knowledge/06-knowledge-in-planning.md)) until resolved, or surfaced with a lowered trust weight?
+*(none — all resolved ahead of review)*

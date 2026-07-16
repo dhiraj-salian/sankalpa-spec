@@ -109,9 +109,9 @@ Preemption of best-effort work by interactive work under reservation pressure; d
 
 ---
 ### Resolved questions
-*(none yet)*
+- **Fixed core enum or policy-mapped named classes?** **Named classes + policy map** (§4.1). The core fixes what must be uniform — the *ordering semantics* and the §4.2 starvation-freedom floor — while workspace policy ([Book 11 §Ch06](../spec/book-11-security/06-policy-engine.md)) maps names to priorities. Hard-coding a class list in the core would bake one tenancy model into the substrate, against P11; and because the floor holds regardless of the mapping, a misconfigured map cannot reintroduce starvation.
+- **Global default shed budget, or per-kind?** A **global policy default, per-kind overridable** (§4.4). Requiring every schedulable kind to define its own is authoring burden for no benefit, while a single global value cannot express that a `Compilation` and an `Execution` tolerate different waits. The load-bearing part is the floor: if neither is set, the global default applies — the budget is **never** unbounded, so deadline-less work can never hold invisibly forever.
+- **Reservation shares: static, or Experience-derived?** **Static** per-workspace quota for v1; the learned variant stays in §15. Fairness is a *guarantee*, and deriving it from a learned model would make a guarantee depend on inference. This follows the spec's own line on learned data ([Book 10 §Ch05](../spec/book-10-experience/05-feedback-into-planning.md)): cost models may only choose *among options already semantically equivalent and already permitted* — a wrong estimate may make a plan slower, "never incorrect, unfaithful, or non-compliant." A wrong learned reservation *would* be non-compliant with the fairness invariant, so it does not belong in that class of decision.
 
 ### Unresolved questions
-- Should `schedulingClass` be a fixed core enum or a workspace-extensible set of named classes mapped to priorities by policy? (Leaning: named classes + policy map, for tenancy flexibility.)
-- For deadline-less work, is a global default backpressure→shed budget acceptable, or must every schedulable kind define its own? 
-- Should reservation shares be static (per-workspace quota) or dynamically derived from historical demand via Experience ([Book 10 §Ch05](../spec/book-10-experience/05-feedback-into-planning.md))?
+*(none — all resolved ahead of review)*
