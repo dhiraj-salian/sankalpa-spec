@@ -15,6 +15,12 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Secrets & determinism
+
+- **Intra-execution secret stability** — The rule that a `SecretRef` resolves to a single value for an Execution's lifetime, keyed `(SecretRef, grantedBy)`, so "the same resolved bindings" holds for a plan that uses one credential twice. The memoization caches the *value*, never the *authority*: every `SecretUse` re-checks capability and policy, so revocation still bites "even past any caching". (RFC-0005)
+- **Rotation generation** — An opaque, monotonic version counter on a `Secret`, incremented on rotation or revocation. Carries no value material (it is not a hash of the value), so it is safe in audit, Events, and `Execution` status. Lets re-execution replay detect that a secret changed since the recorded run and fail closed. (RFC-0005)
+- **Secret carve-out (determinism)** — The acknowledgement that a materialized secret is a *resolved binding* the platform can never record (P7 forbids it), so the determinism guarantee holds *modulo* materialized secret values: pinned within an Execution, not across one. Rotation therefore takes effect at Execution boundaries; revocation takes effect immediately. (RFC-0005)
+
 ## Channel identity
 
 - **Assurance level** — How strongly a channel proves the sender's identity *per message*: a fixed total order `low` < `medium` < `high` (bare identifier / authenticated account with SSO / Web Runtime OIDC or per-request token). A Session's effective authority is capped by its channel leg's assurance. Deliberately a total order, not a lattice, so "minimum assurance" is decidable. (RFC-0009)

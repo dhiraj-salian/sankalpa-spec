@@ -1,12 +1,14 @@
 # Book 01 · Chapter 05 — Determinism and Determinization
 
-*Nature: **Normative** (defines terms the whole spec depends on). · Reflects: RFC-0001, RFC-0002 (recorded-reasoning carve-out), RFC-0003 (drift/reversibility); realizes P1, P13. Companion to Book 04 §Ch02, Book 05 §Ch06, Book 10 §Ch06.*
+*Nature: **Normative** (defines terms the whole spec depends on). · Reflects: RFC-0001, RFC-0002 (recorded-reasoning carve-out), RFC-0003 (drift/reversibility), RFC-0005 (secret carve-out); realizes P1, P13. Companion to Book 04 §Ch02, Book 05 §Ch06, Book 10 §Ch06.*
 
 > "Deterministic execution" is the mission's key phrase (§Ch01), and "determinization" is its engine (P13). This chapter defines both precisely — what determinism *means* here, where non-determinism is *permitted*, and how the system *converts* one into the other. Imprecision about these terms would undermine the whole specification, so they are pinned down here.
 
 ## 1. What determinism means (and does not)
 
 **Determinism in Sankalpa means: given the same Low IR, the same resolved inputs, the same resolved bindings, and the same recorded outputs for every `CapturedReasoning` node and every `Time`/`Random` effect, execution produces the same observable effects and outputs — reproducibly** (Book 04 §Ch02 IR-P1, Book 06 §Ch03 §1). For a plan with no reasoning/`Time`/`Random` nodes the recorded set is empty and this reduces to the three-part form (Low IR + inputs + bindings) — the common case for a fully-determinized plan.
+
+One clause carries a second carve-out that must be named: **"resolved bindings" includes materialized secret values** (Book 06 §Ch03 §1, §Ch06 §2.1). A secret is a binding resolved at execution, and it is the one input the platform can *never* record to make "the same" checkable — P7 forbids it, by invariant rather than by choice. So the guarantee holds **modulo** the materialized secret values: they are pinned **within** an Execution (intra-execution stability), but a rotation between two runs changes a resolved binding that no record can pin. This is the **secret carve-out**, and it is the reason rotation takes effect at Execution boundaries while revocation takes effect at once.
 
 Two clarifications guard against over-claiming:
 - **Determinism is relative to declared inputs and effects** (Book 06 §Ch03 §7). Sankalpa does *not* claim the external world is unchanging. If an external API returns different data on two runs, that difference enters through a **declared effect** (`Network(read)`, Book 04 §Ch06) as an input — honestly modeled, not hidden. Everything the plan *does with* a given set of inputs is reproducible; the inputs themselves are declared effects.
@@ -43,7 +45,7 @@ Putting §1–§4 together: Sankalpa turns intent into *deterministic execution*
 
 ## 6. Invariants (normative summary)
 
-1. Determinism means reproducible observable behavior given the same Low IR, inputs, bindings, **and recorded reasoning/`Time`/`Random` outputs** (the recorded-reasoning carve-out, Book 06 §Ch03 §1); it is relative to *declared* inputs/effects and does not assume an unchanging world or a deterministic model.
+1. Determinism means reproducible observable behavior given the same Low IR, inputs, bindings, **and recorded reasoning/`Time`/`Random` outputs** (the recorded-reasoning carve-out, Book 06 §Ch03 §1); it is relative to *declared* inputs/effects and does not assume an unchanging world or a deterministic model. "Bindings" includes materialized secret values, which P7 makes unrecordable — the **secret carve-out**: pinned within an Execution, not across one (Book 06 §Ch06 §2.1).
 2. Non-determinism is permitted only as typed `Reasoning` nodes and declared `Time`/`Random` effects; everywhere else determinism is required and verification-enforced; non-determinism is never diffuse.
 3. Determinization converts repeated, equivalent-input, stable-output reasoning into governed deterministic Capabilities — not an optimization or assumption, evidence-gated, verified, and reversible.
 4. Determinization is the platform's compounding advantage: the system evolves toward determinism the more it is used, while novel reasoning still flows through the model.

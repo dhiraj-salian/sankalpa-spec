@@ -1,6 +1,6 @@
 # Book 06 · Chapter 03 — Execution Semantics
 
-*Nature: **Normative**. · Reflects: RFC-0001, RFC-0002 (replay modes & reasoning ledger), RFC-0004 (compensation failure); realizes principles P1, P3, P5 and IR-P1, IR-P10. Companion to Book 04 §Ch04 (Low IR), Book 03 §Ch13 (failure).*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0002 (replay modes & reasoning ledger), RFC-0004 (compensation failure), RFC-0005 (secret carve-out); realizes principles P1, P3, P5 and IR-P1, IR-P10. Companion to Book 04 §Ch04 (Low IR), Book 03 §Ch13 (failure).*
 
 > This chapter specifies what it *means* to execute a RuntimeGraph correctly: the determinism obligation, idempotency and retries, timeouts, partial-failure and compensation, and how execution progress becomes Events and an Execution Resource. These are the runtime-side counterparts to the `ExecPolicy` the compiler fixed in Low IR.
 
@@ -10,6 +10,8 @@ Execution MUST be **reproducible in its observable behavior**: given the same Ru
 
 - Executing only what the graph specifies, in a legal order of the schedule's partial order (Book 04 §Ch04 §2) — all legal orders are observationally equivalent by the effect/idempotency contract.
 - Consulting non-determinism **only** where the IR declared it: `CapturedReasoning` nodes (a model call) and `Time`/`Random` effects modeled as explicit inputs (Book 04 §Ch06 §4). The runtime MUST NOT introduce its own clocks, randomness, or ambient state into instruction results.
+
+**"Resolved bindings" includes materialized secret values.** A `SecretRef` is a binding site resolved *at execution* (Book 04 §Ch04 §5), so the value the Broker returns is part of the resolved bindings this guarantee quantifies over — and it is the one such input that is **secret-free-by-necessity unrecordable**: P7 forbids putting it in the reasoning ledger or any durable artifact, so "the same bindings" cannot be made checkable by recording it. The guarantee is therefore stated **modulo** the materialized secret values, which the platform pins **within** an Execution (§Ch06 §2.1, intra-execution stability) but does not carry **across** a record→re-execution boundary: a rotation between runs changes a resolved binding that no record can pin. Reconstruction replay is unaffected — it performs no external effect and injects recorded outcomes, so it materializes no secret at all; **re-execution** replay re-materializes live and therefore compares the reference's `rotationGeneration` against the recorded one, failing closed on a change (§2 of Book 11 §04 §7) rather than silently performing a secret-dependent effect under a credential the recorded run never used.
 
 Where a `CapturedReasoning` node remains (not determinized, Book 05 §Ch06), its non-determinism is confined to that instruction: its typed output is captured and recorded so the run is *auditable and replayable-with-record* even though the reasoning itself was non-deterministic. This is the **recorded-reasoning carve-out** to the determinism guarantee (RFC-0002, Book 01 §05 §1); the following makes it normative.
 

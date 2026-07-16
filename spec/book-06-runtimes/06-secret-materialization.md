@@ -1,6 +1,6 @@
 # Book 06 · Chapter 06 — Secret Materialization
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P7, P8. Companion to Book 11 §04 (Secret Broker), Book 04 §Ch04 §5 (binding sites).*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0005 (intra-execution stability; value/authority split); realizes principles P7, P8. Companion to Book 11 §04 (Secret Broker), Book 04 §Ch04 §5 (binding sites).*
 
 > This chapter specifies the **one and only** point in Sankalpa where a secret becomes a value: at execution, inside a runtime, materialized by the Secret Broker from a reference, under a capability grant. Everywhere else — planning, IR, compilation, storage, logs, Events — secrets exist solely as references (P7). Getting this chapter right is what makes principle P7 mechanically true rather than aspirational.
 
@@ -34,6 +34,24 @@ At the moment an instruction with a `SecretUse` effect (Book 04 §Ch06 §6) is a
 
 Any failure at steps 2–3 is **fail-closed** (Book 03 §Ch13 §1): the secret is not materialized, the instruction fails, and the execution reaches an explained terminal state — it never proceeds with a missing or unauthorized secret.
 
+On success the Broker also returns the secret's current **`rotationGeneration`** (Book 11 §04 §7) for the audit and Execution record (§4, Book 11 §04 §6) — an opaque version token, never value material.
+
+### 2.1 Intra-execution stability (P1 + P7)
+
+The protocol above runs **per instruction**, but a `SecretRef` **MUST** resolve to a single, stable value for the Execution's lifetime:
+
+> The first `SecretUse` of a `SecretRef` within an Execution materializes its value under §2. Every subsequent `SecretUse` of the **same** `SecretRef` **under the same authorizing grant** in the **same** Execution **MUST** observe the **same** value.
+
+The memoization is keyed `(SecretRef, grantedBy)` — the grant is part of the authorization, not incidental (§2 step 2: holding the reference is "necessary but not sufficient") — so a materialization under a *different* grant is a distinct authorization context and **MUST NOT** reuse the memoized value. In the ordinary case of one grant per reference per Execution this is exactly per-`SecretRef` stability. The value stays ephemeral (§5): stability is a within-execution memoization held in the isolated context, **never** storage and never a cache across executions.
+
+Without this, the determinism guarantee's "same resolved bindings" clause (§Ch03 §1) would be unmet for any plan that uses one credential twice: a `SecretRef` is a binding site resolved *at execution* (Book 04 §Ch04 §5), so a rotation landing between two `SecretUse`s of the same reference would silently change a resolved binding mid-run — breaking a session token, a multi-part upload, or a sign-then-verify pair.
+
+**The memoization caches the value, never the authority.** Every `SecretUse` — including those served from the memoized value — **MUST** re-run steps **2–3** (capability, P8; policy/approval, P9). Only step 4's resolution is elided. This is what keeps stability compatible with revocation, which is *"prompt and complete: after revocation, subsequent invocations under it are denied, **even past any caching**"* (Book 11 §03 §5) — a rule that speaks directly to a cache like this one. A memoization that elided the checks would silently defeat prompt revocation.
+
+Rotation and revocation are therefore **not symmetric**:
+- **Rotation** (same reference, new value, authority unchanged — Book 11 §04 §7) takes effect at **Execution boundaries**. A rotation landing mid-flight does not change a value already materialized in that Execution; it applies to the next Execution that materializes the reference.
+- **Revocation** (authority withdrawn) takes effect **immediately, mid-Execution**. The memoized value confers no authority: the next `SecretUse` under a revoked grant fails its step-2 check and the Execution reaches an explained terminal (§2, Book 03 §Ch13 §3), compensating completed effects where declared — and, where a compensating effect itself needs the revoked secret and so cannot run, escalating per the `CompensationFailed` condition (§Ch03 §4). An in-flight invocation already underway completes or is cancelled per the Capability's policy (Book 11 §03 §5); what is governed here is whether a *subsequent* `SecretUse` may proceed — it may not.
+
 ## 3. What the runtime may and may not do
 
 **May:** materialize a secret it is authorized for, at the instruction that declared `SecretUse`, and use it to perform that instruction's effect.
@@ -57,8 +75,10 @@ A runtime that violates any of these has a security defect (Book 11), treated wi
 
 Materialized values are **ephemeral** by contract:
 - Held only for the instruction/execution that needs them, in the isolated runtime context (Book 11 §10).
-- Never written to durable storage, logs, caches, or Events.
-- Discarded when no longer needed; the runtime MUST NOT retain them across executions.
+- Never written to durable storage, logs, external caches, or Events.
+- Discarded when the Execution completes; the runtime MUST NOT retain them across executions.
+
+The within-execution memoization of §2.1 is **not** an exception to this: it is an in-context, in-memory map bounded by the Execution's lifetime, discarded with it, and never durable. The rule it must not weaken is *cross-execution* retention (invariant 4) and *authorization* caching — §2.1 memoizes a value for consistency, never a capability or policy decision, so the exposure window widens only to the length of one Execution and only against **rotation**, never against **revocation** (§2.1).
 
 This bounds the exposure window to the minimum: a secret is a value only briefly, in one isolated place, for one purpose.
 
@@ -67,10 +87,10 @@ This bounds the exposure window to the minimum: a secret is a value only briefly
 How secrets *enter* the Broker in the first place — secure one-time HTTPS pages, OAuth-preferred acquisition, rotation — is specified in Book 11 §05. This chapter concerns only the *use* side: turning a stored, referenced secret into a transient value at execution. The two together (acquisition into the Broker; materialization from the Broker) complete the secret lifecycle, and neither ever puts a value into IR, planning, logs, or ARM.
 
 ## 7. Invariants (normative summary)
-
 1. A secret becomes a value at exactly one point: inside a runtime's isolated execution context, at the instruction that declared `SecretUse`, materialized by the Secret Broker from a reference.
-2. Materialization requires both the reference *and* the authorizing capability (P8) and satisfies policy/approval conditions (P9); failure is fail-closed.
-3. The runtime interface offers no way to read secrets except this by-reference, at-execution materialization; ahead-of-time or bulk reads are inexpressible.
-4. Materialized values are never logged, emitted, traced, persisted, cached across executions, returned up any API, or passed into reasoning (P7).
-5. The Broker is the sole custodian with storage separate from ARM; every materialization is audited by reference, never by value.
-6. Materialized values are ephemeral — held only as long as needed, in isolation, then discarded.
+2. Materialization requires both the reference *and* the authorizing capability (P8) and satisfies policy/approval conditions (P9); failure is fail-closed. These checks re-run at **every** `SecretUse`, including those served from the §2.1 memoization: the memoization caches the value, never the authority, so a revoked grant is denied "even past any caching" (Book 11 §03 §5).
+3. A `SecretRef` resolves to a stable value for an Execution's lifetime, keyed `(SecretRef, grantedBy)` — so "same resolved bindings" (§Ch03 §1) holds for a plan that uses one credential twice. Rotation therefore takes effect at Execution boundaries; revocation takes effect immediately (§2.1).
+4. The runtime interface offers no way to read secrets except this by-reference, at-execution materialization; ahead-of-time or bulk reads are inexpressible.
+5. Materialized values are never logged, emitted, traced, persisted, cached across executions, returned up any API, or passed into reasoning (P7).
+6. The Broker is the sole custodian with storage separate from ARM; every materialization is audited by reference, never by value.
+7. Materialized values are ephemeral — held only as long as needed, in isolation, then discarded.

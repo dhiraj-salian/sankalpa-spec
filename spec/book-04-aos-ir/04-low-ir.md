@@ -1,6 +1,6 @@
 # Book 04 · Chapter 04 — Low IR
 
-*Nature: **Normative**. · Reflects: RFC-0001, RFC-0002 (recorded-reasoning carve-out), RFC-0003 (`shadowSource`); realizes principles P1, P7, P9 and IR-P1…P10.*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0002 (recorded-reasoning carve-out), RFC-0003 (`shadowSource`), RFC-0005 (secret carve-out in the bindings term); realizes principles P1, P7, P9 and IR-P1…P10.*
 
 > Low IR is the compiler-produced form (Book 05): High IR after optimization and policy validation, lowered to fix everything needed for **deterministic execution** — evaluation order, error handling, retries, idempotency, and resource/secret **bindings by reference** — while still naming **no specific runtime** (IR-P7). A runtime backend lowers Low IR into a runtime-specific RuntimeGraph (Books 05–06).
 
@@ -89,7 +89,7 @@ BindingSite:
 
 ## 6. Determinism obligation restated
 
-Low IR is the artifact executed (via its RuntimeGraph). Therefore IR-P1 lands here most concretely: **identical Low IR + identical resolved bindings + identical inputs + identical recorded reasoning/`Time`/`Random` outputs ⇒ identical observable behavior.** The recorded-reasoning term (RFC-0002) is required because a live `CapturedReasoning` node is non-deterministic by construction; for a plan with no such nodes it is empty and the guarantee reduces to the three-part form. The schedule's freedom (any order respecting the partial order) does not weaken this, because the effect/idempotency contract (§4, Ch 06) guarantees observational equivalence across legal orders. Replay tests (Book 05 testing, Book 10) assert exactly this property against golden Low IR, in the reconstruction variant (Book 06 §Ch03 §1).
+Low IR is the artifact executed (via its RuntimeGraph). Therefore IR-P1 lands here most concretely: **identical Low IR + identical resolved bindings + identical inputs + identical recorded reasoning/`Time`/`Random` outputs ⇒ identical observable behavior.** The recorded-reasoning term (RFC-0002) is required because a live `CapturedReasoning` node is non-deterministic by construction; for a plan with no such nodes it is empty and the guarantee reduces to the three-part form. The **bindings** term carries the secret carve-out (RFC-0005): a `SecretRef` binding site (§5) resolves at execution to a value P7 forbids recording, so "identical bindings" is guaranteed *within* an Execution (Book 06 §Ch06 §2.1) and, across runs, only where the reference's rotation generation is unchanged (Book 06 §Ch03 §1). The schedule's freedom (any order respecting the partial order) does not weaken this, because the effect/idempotency contract (§4, Ch 06) guarantees observational equivalence across legal orders. Replay tests (Book 05 testing, Book 10) assert exactly this property against golden Low IR, in the reconstruction variant (Book 06 §Ch03 §1).
 
 ## 7. Relationship to RuntimeGraph and runtime selection
 
