@@ -27,9 +27,9 @@
 | Kind | Group | Lifecycle | Owner | `spec` | `status.actualState` |
 |------|-------|-----------|-------|--------|----------------------|
 | `IRModule` | `ir` | One-shot | Book 04/05 | The IR body + `level: High\|Low`, IR schema version, content hash. | Verification result; derived module. |
-| `Compilation` | `ir` | One-shot | Book 05 | Input IRModule ref; requested passes; target constraints. | Passes run; diagnostics; output refs. |
+| `Compilation` | `ir` | One-shot | Book 05 | Input IRModule ref; requested passes; target constraints; **`schedulingClass`**, optional **`deadline`** (RFC-0007). | Passes run; diagnostics; output refs. |
 | `RuntimeGraph` | `ir` | One-shot | Book 05/06 | Lowered graph; target runtime; secret refs (by reference). | Chosen runtime; validation result. |
-| `Execution` | `core` | One-shot | Book 06 | RuntimeGraph ref; runtime ref; inputs; secret refs. | Progress, metrics, terminal outcome; **reasoning ledger** (recorded reasoning/`Time`/`Random` outputs, secret-free, RFC-0002); **`secretBindings[]`** (per `SecretRef`, the rotation generation materialized — by reference, never a value, RFC-0005). |
+| `Execution` | `core` | One-shot | Book 06 | RuntimeGraph ref; runtime ref; inputs; secret refs; **`schedulingClass`**, optional **`deadline`** (RFC-0007). | Progress, metrics, terminal outcome; **reasoning ledger** (recorded reasoning/`Time`/`Random` outputs, secret-free, RFC-0002); **`secretBindings[]`** (per `SecretRef`, the rotation generation materialized — by reference, never a value, RFC-0005). |
 | `Experience` | `core` | Long-lived† | Book 10 | (system-produced) the full record of one Execution. | Lessons; knowledge updates; generated capabilities. |
 | `RemediationTask` | `core` | One-shot | Book 06 | (system-produced on `CompensationFailed`, RFC-0004) refs to the `Failed` Execution, affected effects, and residual external state (by reference, secret-free). | Reconciliation outcomes; acknowledgment record (two-party for high-consequence residuals); `open → acknowledged → resolved`, non-droppable until audited resolution. |
 
