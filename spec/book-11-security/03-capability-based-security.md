@@ -1,6 +1,6 @@
 # Book 11 · Chapter 03 — Capability-Based Security
 
-*Nature: **Normative**. · Reflects: ADR-0002, RFC-0008 (grants bind to verified identity); realizes principle P8 (and P9). Companion to Book 03 §Ch06 (Capability Manager).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0008 (grants bind to verified identity), RFC-0005 (revocation pierces the secret memoization); realizes principle P8 (and P9). Companion to Book 03 §Ch06 (Capability Manager).*
 
 > Principle **P8 — no ambient authority** is the backbone of Sankalpa's authorization model. This chapter specifies *capability-based security*: authority as unforgeable references to specific actions, granted explicitly, attenuated for delegation, and revocable. It is the model that makes untrusted plugins safe to run and unauthorized effects impossible. The *component* that implements it is the Capability Manager (Book 03 §Ch06); this chapter specifies the *security model* it enforces.
 
@@ -43,6 +43,7 @@ A grant is a Resource (Book 02) with a lifecycle; revocation (Book 03 §Ch06 §7
 - Transitions the grant to a terminal state and emits an audit Event (Ch 09).
 - MUST be **prompt and complete**: after revocation, subsequent invocations under it are denied, even past any caching. A just-revoked grant cannot be used for a new effect.
 - In-flight invocations complete or are cancelled per the Capability's policy; no *new* invocation succeeds.
+- The "even past any caching" rule has one named cache to speak to: the **per-Execution secret memoization** (Book 06 §Ch06 §2.1). It caches a materialized *value* for stability under rotation, never an *authorization* — every `SecretUse` re-runs the capability and policy checks, so a revoked grant is denied mid-Execution even where a value is already memoized. A memoization that elided those checks would silently defeat prompt revocation, which is why the split is normative there.
 
 Revocation is what makes capabilities *governable over time*: authority can be withdrawn (a plugin retired, a determinized Capability found faulty — Book 05 §Ch06 §4) without restarting the world.
 
@@ -66,5 +67,5 @@ Capability security is the linchpin that reconciles Sankalpa's ambitions with it
 2. A capability is an unforgeable, specific, revocable reference that both designates an action and conveys authority to perform it, and is bound to the verified grantee identity it was authorized against — substituting the grantee's code re-opens the authorization question (Book 12 §Ch05 §3.1).
 3. Every effect requires a held grant covering the request's signature and effects; holding one capability conveys no authority over any other; there is no transitive escalation.
 4. Delegation is by attenuation only — derived capabilities are strict subsets; amplification is impossible.
-5. Revocation is prompt and complete; no new invocation succeeds under a revoked grant.
+5. Revocation is prompt and complete; no new invocation succeeds under a revoked grant — including past the per-Execution secret memoization, which caches a value, never an authorization (Book 06 §Ch06 §2.1).
 6. Capabilities (what a subject may ever do) and policy (what is allowed here and now) both gate every action; either can forbid it, fail-closed.

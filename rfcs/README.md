@@ -13,7 +13,7 @@ RFCs are substantial design proposals — the primary vehicle for evolving Sanka
 | [0002](0002-replay-semantics-and-recorded-reasoning.md) | Replay semantics and the recorded-reasoning carve-out to the determinism guarantee | Final |
 | [0003](0003-drift-detection-via-shadow-sampling.md) | Drift detection for determinized Capabilities via shadow sampling | Final |
 | [0004](0004-compensation-failure-terminal-and-escalation.md) | Compensation-failure condition and escalation | Final |
-| [0005](0005-secret-materialization-stability-and-determinism.md) | Secret materialization stability and the secret carve-out to the determinism guarantee | Accepted |
+| [0005](0005-secret-materialization-stability-and-determinism.md) | Secret materialization stability and the secret carve-out to the determinism guarantee | Final |
 | [0006](0006-vault-base-version-stamping-for-lost-update-safe-sync.md) | Vault base-version stamping for lost-update-safe bidirectional Knowledge synchronization | Final |
 | [0007](0007-scheduling-admission-liveness-priority-deadlines-and-terminals.md) | Scheduling admission liveness — priority, deadlines, starvation-freedom, and the pending-work terminal | Accepted |
 | [0008](0008-grant-reauthorization-on-package-upgrade.md) | Capability-grant re-authorization on package upgrade — binding grants to verified version identity | Final |
