@@ -4,12 +4,12 @@
 
 | Pattern | Primarily informs | Status |
 |---------|-------------------|--------|
-| Compiler design (front/middle/back-end, IR, passes) | Books 04, 05 | *to author* |
-| Domain-Driven Design (bounded contexts, ubiquitous language) | Books 01, 02; the Glossary | *to author* |
-| CQRS (command/query separation) | Books 03, 14 | *to author* |
-| Hexagonal architecture (ports & adapters) | Books 03, 06, 08, 13 | *to author* |
-| Microkernel / plug-in architecture | Book 03 (ADR-0002) | *to author* |
-| Event sourcing | Books 02, 10, 14 | *to author* |
-| Capability-based security | Book 11 (P8) | *to author* |
+| [Compiler design](compiler-design.md) (front/middle/back-end, IR, passes) | Books 04, 05 | Accepted |
+| [Domain-Driven Design](domain-driven-design.md) (bounded contexts, ubiquitous language) | Books 01, 02; the Glossary | Accepted |
+| [CQRS](cqrs.md) (command/query separation) | Books 03, 14 | Accepted |
+| [Hexagonal architecture](hexagonal-architecture.md) (ports & adapters) | Books 03, 06, 08, 13 | Accepted |
+| [Microkernel / plug-in architecture](microkernel-architecture.md) | Book 03 (ADR-0002) | Accepted |
+| [Event sourcing](event-sourcing.md) | Books 02, 10, 14 | Accepted |
+| [Capability-based security](capability-based-security.md) | Book 11 (P8) | Accepted |
 
-Each pattern study explains the pattern, then states precisely how (and how faithfully) Sankalpa applies it — including where we deviate and why.
+Each pattern study explains the pattern, then states precisely how (and how faithfully) Sankalpa applies it — including where we deviate and why. All seven are `Accepted` — without independent review, and written after the specification they describe; see [Provenance and its limits](../README.md#provenance-and-its-limits) before relying on the set.

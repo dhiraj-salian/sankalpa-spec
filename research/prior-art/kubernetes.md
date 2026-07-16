@@ -1,6 +1,6 @@
 # Prior-Art Study: Kubernetes
 
-*Status: Draft (exemplar) · Informs: Books 02 (ARM), 03 (Kernel), 07 (Controllers), and the API conventions throughout.*
+*Status: Accepted (exemplar) · Informs: Books 02 (ARM), 03 (Kernel), 07 (Controllers), and the API conventions throughout.*
 
 ## 1. System in one paragraph
 Kubernetes is a container orchestration platform whose real contribution is a **declarative, API-centric control plane**: users declare desired state as versioned API objects, and independent controllers continuously reconcile actual state toward it. Its architecture — a small set of core API machinery plus many controllers and pluggable components — has proven extraordinarily extensible and durable.
