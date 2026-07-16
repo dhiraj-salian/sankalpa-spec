@@ -1,0 +1,116 @@
+# RFC-0010: Runtime observability egress verification — enforcing secret-freedom where the only plaintext secret exists
+
+| Field | Value |
+|-------|-------|
+| **Status** | Draft |
+| **Authors** | Dhiraj Salian (Phase 2 hardening review) |
+| **Domain / Book** | Security & Observability / Books 11, 14 (and 06, 03) |
+| **Shepherd (Domain Lead)** | Security Domain Lead |
+| **Created** | 2026-07-16 |
+| **Supersedes / Superseded by** | — |
+| **Tracking issue** | TBD |
+
+> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. Second batch (0005–0010). Reinforces the secret-freedom of the RFC-0002 reasoning ledger and composes with RFC-0005 (secret materialization stability).
+
+## 1. Executive Summary
+The spec makes secret-freedom of observability a **hard, enforced** guarantee: *"no secret value is ever logged — anywhere, at any level, by any component … a hard guarantee, not a best-effort redaction"* ([Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md)), *"This is **enforced, not merely intended**"* ([Book 03 §Ch12 §2](../spec/book-03-kernel/12-observability-manager.md)). Its stated basis is that *"there is nothing secret to log on those paths"* — the Observability Manager *"operates on the **already-secret-free** Event stream"* ([Book 03 §Ch12 §3](../spec/book-03-kernel/12-observability-manager.md)).
+
+**That premise is false at exactly one place, and it is the place that matters.** The runtime is (a) the **sole holder of a plaintext secret value** ([Book 06 §Ch06 §1](../spec/book-06-runtimes/06-secret-materialization.md), [Book 11 §Ch02 B3](../spec/book-11-security/02-trust-boundaries.md)) and (b) an **untrusted plugin** with no trusted tier ([Book 11 §Ch10 §1](../spec/book-11-security/10-plugin-isolation.md), [Book 03 §Ch07 §5](../spec/book-03-kernel/07-scheduler-and-runtime-manager.md)). The Event stream is not "already secret-free" — it is **populated from that untrusted runtime's output**: `events()` returns `RuntimeEvent`s the Runtime Manager reflects onto the bus and into the reasoning ledger ([Book 06 §Ch02 §5](../spec/book-06-runtimes/02-runtime-interface.md), [Book 06 §Ch03 §1](../spec/book-06-runtimes/03-execution-semantics.md)). Their secret-freedom is asserted only as a `MUST` **on the runtime itself** ([Book 06 §Ch02 §5](../spec/book-06-runtimes/02-runtime-interface.md)) plus a **pre-admission** conformance test ([Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md)) — an honor-system rule on an untrusted component, and a test a malicious runtime passes before leaking in production.
+
+Meanwhile the plugin-boundary posture already says the opposite is required: *"Output is verified, not trusted"* ([Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md)) — but its verified-output list covers High IR, pass/backend output, and self-claims, **not** `RuntimeEvent`s/logs, while claiming *"a plugin cannot smuggle … a secret into the system by producing bad output — the output is checked at the boundary."* This RFC closes the gap: a **runtime observability-egress check** at the Runtime Manager, which — because the Broker knows exactly which values it materialized for this Execution — is a **tractable, targeted** check rather than undecidable general secret-detection.
+
+## 2. Problem Statement
+Four load-bearing statements are mutually inconsistent, and the inconsistency lands on the system's most sensitive asset:
+
+- **B2 misdescribes the runtime.** [Book 11 §Ch02 B2](../spec/book-11-security/02-trust-boundaries.md) says a runtime *"returns Events"* and that at B2 *"its **inputs are secret-free** (P7)"*. The runtime's inputs are **not** secret-free — [B3](../spec/book-11-security/02-trust-boundaries.md) sends *"materialized **values** out … into a runtime's execution context."* The runtime is the single plugin class that B2's blanket claim does not describe, and it is precisely the one whose output could carry a secret.
+- **B2's "output is re-verified" does not cover Events.** B2 cites [Book 04 §Ch08](../spec/book-04-aos-ir/08-verification.md) (IR verification) and [Book 05 §Ch05 §5](../spec/book-05-compiler/05-lowering-framework.md) (lowering/RuntimeGraph) — neither inspects `RuntimeEvent`s, the very output B2 lists.
+- **The isolation chapter overclaims.** [Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md): *"a plugin cannot smuggle non-determinism, an undeclared effect, **or a secret** into the system by producing bad output — the output is checked at the boundary before use."* No check exists for observability output. And [§6](../spec/book-11-security/10-plugin-isolation.md)'s bounded worst case — a malicious plugin *"cannot … reach the Secret Broker's values"* — excludes the runtime, which **receives** values by design.
+- **The logging guarantee rests on the false premise.** [Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md) grounds its "hard" guarantee in *"there being no secret on the logging path (plus runtime discipline + conformance testing)"*. For the runtime there **is** a secret on the path, so the guarantee degrades to discipline + a pre-admission test — i.e. best-effort, the thing it explicitly disclaims.
+
+**Blast radius.** `RuntimeEvent`s are reflected into durable, long-retained, widely-read stores: the Event Bus ([Book 03 §Ch03](../spec/book-03-kernel/03-event-bus.md)), the **reasoning ledger** — which [Book 06 §Ch03 §1](../spec/book-06-runtimes/03-execution-semantics.md) requires *"MUST be secret-free (P7)"* while populating it from untrusted runtime output — Experience ([Book 10 §Ch03](../spec/book-10-experience/03-capture-pipeline.md)), logs, and audit. Retention is justified *because* these are secret-free ([Book 14 §Ch04 §6](../spec/book-14-observability-governance/04-logging.md)). A runtime legitimately granted a `payments` credential can place it in a typed `RuntimeEvent` field and permanently poison stores designed on the assumption that it cannot.
+
+Cost of doing nothing: the platform's strongest stated invariant (P7) is, at its only real exposure point, an unverified promise from untrusted code — and the "defining threat" of the threat model ([Book 11 §Ch01](../spec/book-11-security/01-threat-model.md)) is left to good manners.
+
+## 3. Alternatives Considered
+- **Do nothing.** Rejected: leaves P7's enforcement resting on untrusted discipline at the one boundary where plaintext exists, and leaves four normative statements contradicting each other.
+- **Rely on conformance testing alone (status quo).** Rejected: conformance is *pre-admission*. It catches an honest runtime's bug; a malicious runtime passes the canary suite and leaks at execution. A test is not an enforcement boundary.
+- **General redaction / pattern-scanning of all observability output.** Rejected: detecting "a secret" in arbitrary data is undecidable in general; pattern-based redaction is exactly the failing approach [Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md) rightly disclaims, and it would produce false confidence plus false positives.
+- **Forbid runtimes from emitting Events (Manager synthesizes everything).** Rejected: the Manager cannot know per-instruction progress/outcomes without the runtime reporting them; [Book 06 §Ch02 §5](../spec/book-06-runtimes/02-runtime-interface.md)'s `events()` contract and the RFC-0002 ledger both depend on runtime reports.
+- **Targeted egress verification against the known materialized set (chosen).** The Broker materialized a *specific, small, known* set of values into execution E ([Book 06 §Ch06 §2](../spec/book-06-runtimes/06-secret-materialization.md)). Checking E's observability output against *that* set is decidable, cheap, and precise — no general detection needed. It converts the existing canary-test *idea* into a *runtime boundary check*, exactly matching the "verify, don't trust" rule ([Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md)) already mandated for every other plugin output.
+
+## 4. Proposed Design
+**4.1 The runtime observability-egress boundary (normative).** [Book 11 §Ch02](../spec/book-11-security/02-trust-boundaries.md) gains an explicit crossing: **runtime → Kernel observability** (`RuntimeEvent`s, logs, traces, metrics). B2 is corrected to state that the runtime is the distinguished plugin whose **inputs are not secret-free** (B3), and that its observability output is therefore **checked**, not trusted.
+
+**4.2 Egress verification at the Runtime Manager (normative).** Before reflecting any runtime-emitted `RuntimeEvent`, log record, trace span, or metric into **any** durable or shared sink — Event Bus, reasoning ledger, Experience, logs, audit — the Runtime Manager **MUST** verify the payload contains no value materialized into that Execution:
+- The Secret Broker maintains, per Execution, the **materialized-value digest set**: for each value materialized (§4.1 of [RFC-0005](0005-secret-materialization-stability-and-determinism.md) makes this set stable and small), a keyed digest `HMAC(k_E, value)` under a **per-execution key `k_E` held by the Broker/Manager and never given to the runtime**.
+- The Manager checks each egress payload's field values against the digest set using the same keyed digest, in constant time. A keyed digest (not a bare hash) prevents the digest set from itself becoming an offline-guessable oracle, and the per-execution key bounds its lifetime.
+- The check is **structural, not heuristic**: `RuntimeEvent`s are already **typed** ([Book 06 §Ch02 §2](../spec/book-06-runtimes/02-runtime-interface.md)); the Manager **MUST** reject payloads with free-form/opaque fields that cannot be decomposed into checkable typed values, shrinking the egress surface to what is checkable.
+
+**4.3 Fail-closed on violation (normative).** On a match, the Manager **MUST**:
+- **Never persist or forward the payload** — it is dropped at the boundary, before the bus, ledger, log, or Experience.
+- Fail the Execution with a distinguished `SecretEgressViolation` condition on `Failed` ([Book 02 §Ch03 §3.5](../spec/book-02-resource-model/03-desired-vs-actual-state.md)) — a condition, not a new phase, consistent with RFC-0004's precedent.
+- Emit a high-severity, **secret-free** Event and audit record ([Book 11 §Ch09](../spec/book-11-security/09-audit-and-attribution.md), [Book 14 §Ch05](../spec/book-14-observability-governance/05-audit.md)) reporting *that* runtime R attempted to egress secret S (by `SecretRef`/class, **never** the value) for execution E — the violation report must not itself leak.
+- Treat it as a **security defect** ([Book 11 §Ch01](../spec/book-11-security/01-threat-model.md)): the runtime's grants are revocable and it is quarantinable ([Book 11 §Ch03 §5](../spec/book-11-security/03-capability-based-security.md), [Book 12 §Ch06](../spec/book-12-packages/06-marketplace.md)) — the containment lever that already exists gains a trigger.
+
+**4.4 Restated logging/observability guarantee (normative).** [Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md) and [Book 03 §Ch12 §2–3](../spec/book-03-kernel/12-observability-manager.md) are amended to state the guarantee **accurately and still strongly**:
+
+> No secret value is ever admitted to the Event stream, ledger, logs, traces, Experience, or audit. On Kernel-internal paths this holds **by construction** (no secret exists there). On the one path where a plaintext secret exists — a runtime's observability output — it is enforced **at the boundary** by egress verification against the execution's materialized-value set (§4.2), fail-closed on violation.
+
+This replaces "there is nothing secret to log on those paths" (false for the runtime) with a claim that is true and mechanized, and it makes "enforced, not merely intended" ([Book 03 §Ch12 §2](../spec/book-03-kernel/12-observability-manager.md)) accurate.
+
+**4.5 Scope of the guarantee — stated honestly (normative).** Egress verification catches **verbatim** emission of a materialized value. It does **not** catch a runtime that *transforms* the value (encodes, encrypts, splits across fields) or exfiltrates it directly to its own endpoint across **B4** ([Book 11 §Ch02 B4](../spec/book-11-security/02-trust-boundaries.md)). Those remain governed by the primary defenses: effect declaration and policy ([Book 04 §Ch06](../spec/book-04-aos-ir/06-effect-system.md), [Book 14 §Ch06](../spec/book-14-observability-governance/06-runtime-policy-enforcement.md)), egress capability grants, and isolation ([Book 11 §Ch10](../spec/book-11-security/10-plugin-isolation.md)). The precise, defensible claim this RFC establishes: **the platform's own durable stores are protected by an enforced boundary rather than by an untrusted component's promise**, and accidental/verbatim leakage — the dominant real-world failure mode ([Book 14 §Ch04](../spec/book-14-observability-governance/04-logging.md)'s opening rationale) — becomes impossible rather than merely prohibited. [Book 11 §Ch10 §4/§6](../spec/book-11-security/10-plugin-isolation.md)'s claims are corrected to this bounded form.
+
+## 5. Tradeoffs
+**Gain:** P7 gains a real enforcement point where plaintext actually exists; the reasoning ledger's "MUST be secret-free" becomes enforced rather than assumed; four contradictory normative statements are reconciled; accidental verbatim leakage (the dominant failure mode) becomes structurally impossible; malicious leakage is raised in cost and detected/attributed when verbatim.
+**Give up:** a per-execution keyed-digest set and a constant-time check on the observability hot path; `RuntimeEvent` payloads must be fully typed/decomposable (free-form fields rejected); the Broker/Manager retains value digests (not values) for the Execution's lifetime; the guarantee's scope must be stated more modestly and precisely than today's absolute phrasing.
+
+## 6. API Changes
+Additive; no signature changes:
+- Runtime interface ([Book 06 §Ch02](../spec/book-06-runtimes/02-runtime-interface.md)): `events()` unchanged in shape; its `RuntimeEvent` schema is tightened to fully-typed fields (§4.2). No new method; the runtime is *not* given the key or the digest set.
+- Secret Broker ([Book 11 §Ch04](../spec/book-11-security/04-secret-broker.md)): on materialization, records `HMAC(k_E, value)` into the execution's digest set (internal; never exposed to the runtime or any Event).
+- Runtime Manager ([Book 03 §Ch07 §3](../spec/book-03-kernel/07-scheduler-and-runtime-manager.md)): performs §4.2's check before reflecting reports — an addition to a path it already owns ("the Manager reflects its reports", [Book 06 §Ch02 §5](../spec/book-06-runtimes/02-runtime-interface.md)).
+
+## 7. Resource Changes
+`Execution` ([Book 02 §Ch07](../spec/book-02-resource-model/07-core-resource-catalog.md)): additive `SecretEgressViolation` condition reason on the `Failed` phase; no new phase and no lifecycle change. The digest set is Broker-internal state keyed by Execution, not an ARM Resource (it must never reach the ARM store — [Book 02 §Ch08 §6](../spec/book-02-resource-model/08-storage-and-consistency.md)).
+
+## 8. Event Changes
+Additive, secret-free (P5): `secret.egress_violation` (high-severity; names runtime, `SecretRef`/class, execution — never the value), routed to operator alerting ([Book 14 §Ch08](../spec/book-14-observability-governance/08-operability.md)) and audit ([Book 11 §Ch09](../spec/book-11-security/09-audit-and-attribution.md)). Per-subject ordering on the `Execution` subject suffices ([Book 03 §Ch03 §5](../spec/book-03-kernel/03-event-bus.md)).
+
+## 9. Security Impact
+This RFC is a **B2/observability-egress hardening** that converts P7's weakest link from an unverified `MUST` on untrusted code into a fail-closed boundary check. It introduces **no** new secret flow: the runtime never receives the key or digests; the Broker/Manager compare digests, not plaintext, and the violation report is itself secret-free (§4.3). The digest set is keyed per execution, so it is neither a long-lived oracle nor offline-guessable, and it never enters the ARM store, Events, or logs. It composes with RFC-0005 (whose §4.1 intra-execution stability makes the materialized set small, stable, and well-defined — the precondition that makes this check cheap) and it gives RFC-0002's ledger the enforcement its "MUST be secret-free" currently lacks. SI checklist ([Book 11 §Ch11](../spec/book-11-security/11-security-invariants.md)): *observability output from a runtime is verified secret-free at the boundary against the execution's materialized-value set; a violation is dropped, fails the Execution, and is escalated and attributed.* Security review required (touches P7 directly).
+
+## 10. Performance Impact
+One keyed digest per materialized value (once per execution under RFC-0005 §4.1, versus once per use today) plus a constant-time set-membership check per egress field. Digest sets are tiny (distinct secrets per execution, typically ≤ a handful). The check is on the observability path, not the effect path. Rejecting free-form fields removes parsing ambiguity and cost. Net overhead is small and bounded; it replaces zero enforcement.
+
+## 11. Testing Strategy
+- Enforcement: a deliberately-malicious test runtime emits its materialized secret verbatim in a `RuntimeEvent` field ⇒ payload dropped at the boundary, never on the bus/ledger/log/Experience; Execution `Failed`/`SecretEgressViolation`; high-severity Event + audit emitted, both secret-free.
+- Same via a log record and a trace span ⇒ same outcome (all sinks covered).
+- Ledger integrity: no ledger entry ever contains a materialized value, even from a hostile runtime (the RFC-0002 invariant, now testable as *enforcement* rather than *conformance-only*).
+- Structural: a `RuntimeEvent` with a free-form/opaque field ⇒ rejected.
+- Non-regression: honest runtimes' Events pass unchanged; no false positives on references/hashes/classes ([Book 14 §Ch04 §3](../spec/book-14-observability-governance/04-logging.md)).
+- Negative/limits: an *encoded* secret is documented as **not** caught (§4.5) — the test asserts the documented scope, preventing false confidence.
+
+## 12. Documentation Changes
+Correct [Book 11 §Ch02 B2](../spec/book-11-security/02-trust-boundaries.md) (runtime inputs are not secret-free; add the observability-egress crossing and its check); extend [Book 11 §Ch10 §4](../spec/book-11-security/10-plugin-isolation.md)'s verified-output list to observability output and bound §4/§6's smuggling/worst-case claims per §4.5; amend [Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md) and [Book 03 §Ch12 §2–3](../spec/book-03-kernel/12-observability-manager.md) to §4.4's restated guarantee (removing "already-secret-free"/"nothing secret to log" as unqualified claims); note the check in [Book 06 §Ch02 §5](../spec/book-06-runtimes/02-runtime-interface.md) and [Book 06 §Ch03 §1](../spec/book-06-runtimes/03-execution-semantics.md) (ledger). New Glossary entries: *Observability egress verification*, *Materialized-value digest set*.
+
+## 13. Migration Strategy
+Additive and pre-1.0. The check is Manager-side, so existing runtimes need no change to *pass* it — only to stop violating it (which they were already required not to do). The `RuntimeEvent` typed-field tightening is the one breaking edge: a deprecation window per [`process/versioning-and-stability.md`](../process/versioning-and-stability.md) lets runtimes emitting free-form fields migrate, with the Manager warning before rejecting. No stored artifact changes meaning.
+
+## 14. Risks
+- **False sense of completeness.** The check does not stop an encoding/exfiltrating malicious runtime (§4.5) — mitigated by stating scope normatively in the spec text and by the §11 negative test, so no reader mistakes it for total.
+- **Digest-set handling.** The set must never leak to the runtime, the ARM store, or logs; the per-execution key must be discarded with the Execution — flagged for the reflecting PR and security review.
+- **Hot-path cost on chatty runtimes** — mitigated by tiny digest sets and constant-time checks; measurable via the §10 budget.
+- **Interaction with RFC-0005.** This RFC assumes RFC-0005 §4.1's per-execution stable materialized set; without it, the digest set must track every re-materialization (still workable, less clean). If 0005 is deferred, 0010's §4.2 must define the set over all materializations in E — verify in joint review.
+- **Trace/metric sinks** may be provider plugins ([Book 14 §Ch04 §6](../spec/book-14-observability-governance/04-logging.md)); the check must sit **before** any sink hand-off, not inside a replaceable provider.
+
+## 15. Future Improvements
+Taint-tracking inside the runtime sandbox (catching transformed values) where the isolation technology supports it; near-duplicate/encoding-aware egress checks (base64/hex/URL-encoding of the digest input) as a cheap extension covering the most common accidental transformations; extending egress verification to channel adapters and provider plugins for classified non-secret data (PII, [Book 14 §Ch04 §3](../spec/book-14-observability-governance/04-logging.md)).
+
+---
+### Resolved questions
+*(none yet)*
+
+### Unresolved questions
+- Should encoding-aware checking (digesting common transforms of the value: base64/hex/URL) be in scope now, or is verbatim-only the right v1 line given §4.5's honesty about the malicious case?
+- Should a `SecretEgressViolation` **automatically** revoke the runtime's grants and quarantine it, or only escalate for operator decision (auto-revocation is a self-inflicted-DoS lever if a false positive ever occurred)?
+- Does the same egress check belong at **B5** (planner ↔ model provider)? Planner context is secret-free by construction, so there should be nothing to catch — but the same "by construction" reasoning is exactly what failed here, which argues for a defense-in-depth check.
