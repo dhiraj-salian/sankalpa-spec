@@ -15,6 +15,14 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Scheduling
+
+- **Aging** — Raising a `Pending` unit's effective priority monotonically with wait time so it eventually reaches the front of the queue. One of the two mechanisms (with reservation) that make starvation-freedom real rather than asserted. (RFC-0007)
+- **DeadlineExceeded** — The terminal condition on `Failed` for a unit whose `deadline` passed before run-admission, or before completion for an execution-spanning deadline. Fail-closed and explained; compensation runs where effects were already produced. (RFC-0007)
+- **Run-admission** — The Scheduler's decision to advance a unit from `Pending` to `Progressing`. Distinct from *store-admission* (the write succeeding, which is what `Pending` records); the gap between them is bounded and visible, never a silent stall. (RFC-0007)
+- **Scheduling class** — A named priority class on schedulable work, mapped to a priority by workspace policy and capability-gated so priority is governed, not self-asserted. (RFC-0007)
+- **Shed (work)** — The terminal condition on `Failed` for a unit that cannot be run-admitted within its deadline or backpressure budget — the async-work counterpart of the Kernel API's typed `Busy`/`Unavailable`. (RFC-0007)
+
 ## Secrets & determinism
 
 - **Intra-execution secret stability** — The rule that a `SecretRef` resolves to a single value for an Execution's lifetime, keyed `(SecretRef, grantedBy)`, so "the same resolved bindings" holds for a plan that uses one credential twice. The memoization caches the *value*, never the *authority*: every `SecretUse` re-checks capability and policy, so revocation still bites "even past any caching". (RFC-0005)

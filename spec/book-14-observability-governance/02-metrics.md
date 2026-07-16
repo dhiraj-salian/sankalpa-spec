@@ -1,6 +1,6 @@
 # Book 14 · Chapter 02 — Metrics
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P7, P10, P13. Companion to Book 03 §Ch12 (Observability Manager), Book 10 §Ch07 (evaluation), Book 05 §Ch03 (cost model).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0007 (admission-liveness SLIs); realizes principles P7, P10, P13. Companion to Book 03 §Ch12 (Observability Manager), Book 10 §Ch07 (evaluation), Book 05 §Ch03 (cost model).*
 
 > Metrics are the quantitative view of the system: how much, how fast, how often, how costly. This chapter specifies the standard metrics Sankalpa exposes, the SLI/SLO discipline, and how metrics feed both operators and the platform's own cost/learning loops — all secret-free.
 
@@ -27,7 +27,7 @@ This is the platform's **self-knowledge**: where it is healthy, wasteful, or dri
 
 ## 3. SLIs and SLOs
 
-Standard metrics are organized into **Service Level Indicators** (measurable signals of health, e.g. execution p99 latency, Goal-success rate) and **Service Level Objectives** (targets on those SLIs). The Kernel and each subsystem SHOULD define SLIs/SLOs so that "is the system healthy?" has a defined, measurable answer — feeding operability (§Ch08) and degradation decisions (Book 03 §Ch13). SLOs make health objective rather than anecdotal.
+Standard metrics are organized into **Service Level Indicators** (measurable signals of health, e.g. execution p99 latency, Goal-success rate) and **Service Level Objectives** (targets on those SLIs). Admission liveness is an SLI family in its own right (Book 03 §Ch07 §2.4–2.5): **queue depth**, **pending wait-time percentiles per `schedulingClass` and per workspace**, and **shed / deadline-exceeded rates**. These are what make starvation-freedom and bounded holds *observable* rather than merely asserted — a rising low-class wait-time tail against a flat high-class one is the signal that aging or reservation is misconfigured, and it is visible before any unit is shed. The Kernel and each subsystem SHOULD define SLIs/SLOs so that "is the system healthy?" has a defined, measurable answer — feeding operability (§Ch08) and degradation decisions (Book 03 §Ch13). SLOs make health objective rather than anecdotal.
 
 ## 4. Metrics feed the platform's own loops (P13)
 

@@ -1,6 +1,6 @@
 # Book 03 · Chapter 13 — Failure Modes and Degradation
 
-*Nature: **Normative**. · Reflects: ADR-0002, RFC-0004 (compensation failure); realizes principles P1, P3, P4, P7, P8, P9. Companion to Book 07 §05 (controller recovery), Book 14 §08 (operability).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0004 (compensation failure), RFC-0007 (async-work shed); realizes principles P1, P3, P4, P7, P8, P9. Companion to Book 07 §05 (controller recovery), Book 14 §08 (operability).*
 
 > A decade-scale platform is defined as much by how it *fails* as by how it works. This chapter specifies the Kernel's failure behavior: which invariants hold **even when the core itself is partially broken**, how the system degrades rather than collapses, and how it recovers. The governing rule: **fail safe, degrade gracefully, recover deterministically.**
 
@@ -19,7 +19,7 @@ These four are **fail-closed**: the safe state is *deny/stop*. The rest of this 
 
 Under overload or partial outage, the Kernel degrades in a defined order rather than failing globally:
 
-1. **Backpressure first.** The Scheduler (§Ch07) and Kernel API (§Ch02 §4) shed new work with typed `Busy`/`Unavailable` rather than growing unbounded queues. Admitted work in flight is protected before new work is accepted.
+1. **Backpressure first.** The Scheduler (§Ch07) and Kernel API (§Ch02 §4) shed new work rather than growing unbounded queues. Admitted work in flight is protected before new work is accepted. The two surfaces shed *deterministically and legibly*, differing only in mechanism: the API returns a typed `Busy`/`Unavailable`, while an already-persisted async unit is either **held with a surfaced `AdmissionPending` condition** or reaches terminal `Failed`/`Shed` when its deadline or backpressure budget is exhausted (§Ch07 §2.5). Neither surface may queue unboundedly, and neither may stall silently.
 2. **Domain isolation.** A failing Manager degrades *its domain*, not the whole Kernel (§Ch04 §3). If the Compiler Manager is unavailable, existing Executions continue and new compilations queue/fail; reconciliation of unrelated Resources proceeds.
 3. **Plugin containment.** A crashing/hanging plugin is contained by the Plugin Manager (§Ch09 §4): its work fails or reschedules per safety (§3), the Kernel and other plugins are unaffected.
 4. **Read-mostly survival.** If the store's write path is impaired, the Kernel SHOULD continue serving reads/watches (observability, audit) while failing writes with `Unavailable`, so operators can see the system even when it cannot change it.
