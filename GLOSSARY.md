@@ -15,6 +15,11 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Observability egress
+
+- **Materialized-value digest set** — The per-Execution set of keyed digests `HMAC(k_E, value)` of every secret materialized into it, held by the Broker/Runtime Manager under a per-execution key the runtime never sees. Keyed (not a bare hash) so it is not an offline-guessable oracle; the substrate the egress check compares against. (RFC-0010)
+- **Observability egress verification** — The Runtime Manager's check of a runtime's `RuntimeEvent`s, logs, traces, and metrics against the materialized-value digest set before any sink. It exists because the runtime is simultaneously the sole holder of a plaintext secret and an untrusted plugin, so the Event stream is not "already secret-free" upstream of it. Catches verbatim and declared-encoding emission; not a bound on a transforming or B4-exfiltrating runtime. (RFC-0010)
+
 ## Scheduling
 
 - **Aging** — Raising a `Pending` unit's effective priority monotonically with wait time so it eventually reaches the front of the queue. One of the two mechanisms (with reservation) that make starvation-freedom real rather than asserted. (RFC-0007)

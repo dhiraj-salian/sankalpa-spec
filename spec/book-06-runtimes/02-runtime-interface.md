@@ -1,6 +1,6 @@
 # Book 06 · Chapter 02 — The Runtime Interface
 
-*Nature: **Normative**. · Reflects: ADR-0002, RFC-0001; realizes principles P4, P7, P8, P11. This chapter is the specification body of **AEP-0002 (Runtime interface)**.*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0001, RFC-0010 (RuntimeEvent egress verified); realizes principles P4, P7, P8, P11. This chapter is the specification body of **AEP-0002 (Runtime interface)**.*
 
 > The runtime interface is the stable contract every runtime plugin implements. It is an AEP (AEP-0002) because it is a promise to third-party authors: implement this faithfully and your engine can execute any Sankalpa plan. This chapter defines the interface methods, the lifecycle, version negotiation, and the capability/isolation model.
 
@@ -60,7 +60,7 @@ Runtime (AEP-0002):
 ## 5. Reporting: Events (P5, P7)
 
 - `events` streams typed `RuntimeEvent`s that the Runtime Manager translates into domain Events on the Event Bus (Book 03 §Ch03) — preserving P4 (the runtime does not publish to the bus directly; the Manager reflects its reports).
-- Every RuntimeEvent MUST be **secret-free** (P7): it reports effects, progress, and outcomes by reference and by non-secret fact, never a materialized secret value.
+- Every RuntimeEvent MUST be **secret-free** (P7): it reports effects, progress, and outcomes by reference and by non-secret fact, never a materialized secret value. This is an obligation on the runtime **and a check at the boundary**: the Runtime Manager verifies each reported payload against the execution's materialized-value digest set before reflecting it onto the bus or into the reasoning ledger, dropping it and failing the Execution on a match (Book 14 §04 §2.1). The runtime is untrusted (Book 11 §10) and is the one component holding a plaintext secret, so this MUST is verified rather than taken on trust. Payloads MUST be fully typed; free-form/opaque fields the Manager cannot decompose are rejected.
 - Events MUST carry correlation/trace context (Book 14 §03) so the execution is traceable end-to-end (Intent → … → Execution).
 
 ## 6. Capability and secret model (P7, P8)

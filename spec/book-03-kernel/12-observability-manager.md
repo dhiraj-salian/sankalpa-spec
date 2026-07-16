@@ -1,6 +1,6 @@
 # Book 03 · Chapter 12 — Observability Manager
 
-*Nature: **Normative** (Kernel-integration contract) with pointer to Book 14. · Reflects: ADR-0002; realizes principles P5, P7, P10.*
+*Nature: **Normative** (Kernel-integration contract) with pointer to Book 14. · Reflects: ADR-0002, RFC-0010 (egress verification); realizes principles P5, P7, P10.*
 
 > "Everything is observable" (P10) is only true if something makes it so uniformly. The Observability Manager is that core component: it turns the Event stream (§Ch03) and Manager instrumentation into metrics, traces, structured logs, and the audit trail. Book 14 specifies the full observability and runtime-governance model; this chapter fixes how the Manager plugs into the Kernel.
 
@@ -12,14 +12,14 @@ Because every state change emits an Event (P5) and every Event is attributable a
 
 1. **Metrics** — derive standard metrics for Resources, Executions, the compiler, and runtimes (Book 14 §02), including SLIs for the Kernel itself.
 2. **Tracing** — stitch `traceContext` (§Ch03 §2) across the Intent → Goals → Compilation → Execution path into end-to-end traces (Book 14 §03), referencing IR by content hash (Book 04 §Ch07) rather than by contents.
-3. **Logging** — provide structured logging with a **hard secret-freedom guarantee** (P7): no secret value is ever logged, mirroring the Event constraint (§Ch03 §8). This is enforced, not merely intended (Book 14 §04).
+3. **Logging** — provide structured logging with a **hard secret-freedom guarantee** (P7): no secret value is ever logged, mirroring the Event constraint (§Ch03 §8). This is **enforced** — by construction on Kernel-internal paths, and by egress verification at the one boundary where a plaintext secret exists (Book 14 §04 §2.1). "Enforced, not merely intended" is only true because that boundary check exists; without it the claim would rest on an unverified rule addressed to untrusted code.
 4. **Audit** — expose the tamper-evident audit trail derived from the immutable Event stream (Book 14 §05); because Events derive from committed state (§Ch03 §6), the audit is complete and consistent by construction.
 5. **Health signals** — surface Kernel and plugin health/readiness (fed by the Plugin Manager §Ch09, Runtime Manager §Ch07) for operators and for degradation decisions (§Ch13).
 
 ## 3. Secret-freedom as an observability invariant (P7)
 
 The observability surfaces — logs, traces, metrics labels, audit records — are high-fanout and long-retained, exactly where a leaked secret does the most damage. Therefore:
-- The Observability Manager MUST NOT accept or emit secret values anywhere; it operates on the already-secret-free Event stream and on instrumentation held to the same rule.
+- The Observability Manager MUST NOT accept or emit secret values anywhere. It operates on an Event stream that is secret-free **because it is kept so** — by construction for Kernel-emitted Events, and by the Runtime Manager's egress verification for the runtime-emitted `RuntimeEvent`s reflected onto it (Book 14 §04 §2.1, Book 06 §Ch02 §5). The stream is not "already secret-free" upstream of that check: a runtime holds the one plaintext value in the system and is untrusted (Book 11 §10), so its output is verified before it becomes an Event, not assumed clean on arrival.
 - Reports about secret-referencing operations name the `SecretRef` and the action, never a value (mirrors §Ch02 §6, Book 04 §Ch08 §4).
 - A telemetry path that could carry a secret is a security defect (Book 11), treated with the same seriousness as a leak in IR or Events.
 
