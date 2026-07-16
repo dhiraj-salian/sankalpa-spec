@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Proposed |
+| **Status** | Accepted |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Interfaces & Security / Books 13, 11 |
 | **Shepherd (Domain Lead)** | Security Domain Lead |
@@ -12,7 +12,7 @@
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0009 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011); first Interfaces (Book 13) finding, independent of the others.
 
-> **Final Comment Period — disposition: accept.** Called 2026-07-16 by the Security Domain Lead; concludes **2026-07-30** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. Blocking objections must cite concrete technical harm. **No FCP-blocking items**: all 21 open design questions across the batch were resolved before proposing, and the review pass fixed the two defects it found (0005's value/authority split, 0007's unbounded hold).
+> **Accepted 2026-07-16.** FCP (accept disposition) was called and concluded the same day by the Security Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. No blocking objections; all design questions resolved (see *Resolved questions*), and the review pass fixed the defects it found. Per [process §8](../process/rfc-process.md) this RFC becomes **normative only on reflection into `spec/`**; status advances to **Final** once the Documentation Changes (§12) land in Books 02 §07, 11 §02/§08, 13 §02/§03 and the Glossary.
 
 ## 1. Executive Summary
 A `Session` is "an authenticated interaction context [that] establishes *who* is interacting" ([Book 13 §Ch05 §2](../spec/book-13-interfaces/05-conversation-and-session.md), [Book 11 §Ch08 §3](../spec/book-11-security/08-identity-users-sessions.md)), and every Kernel API request "is authenticated before authorization" via "tokens, mTLS, OIDC" ([Book 11 §Ch08 §4](../spec/book-11-security/08-identity-users-sessions.md)). But a message from a messaging channel (Telegram, WhatsApp, Slack, Email, Voice — [Book 13 §Ch03](../spec/book-13-interfaces/03-reference-channels.md)) carries no such token — only a **channel-native, often-spoofable identifier**: an email `From`, a phone number, a Telegram user id. The spec says only that "the channel's transport identity is **mapped** to a Session/User at the Kernel API" ([Book 13 §Ch02 §… ingress](../spec/book-13-interfaces/02-channel-model.md), [Book 13 §Ch03 §… inbound](../spec/book-13-interfaces/03-reference-channels.md)) — a **mapping**, never an **authentication** — while simultaneously declaring the channel **untrusted** ([Book 13 §Ch02 §… untrusted](../spec/book-13-interfaces/02-channel-model.md)). Two holes result:
