@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Accepted |
+| **Status** | Final |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Packages & Security / Books 12, 11 |
 | **Shepherd (Domain Lead)** | Security Domain Lead |
@@ -13,6 +13,8 @@
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0008 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011); first supply-chain (Book 12) finding, independent of the others.
 
 > **Accepted 2026-07-16.** FCP (accept disposition) was called and concluded the same day by the Security Domain Lead. For the solo-maintainer repo the 10-working-day window was shortened and the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) waived — both recorded here for auditability, not pretended. No blocking objections; all design questions resolved (see *Resolved questions*), and the review pass fixed the defects it found. Per [process §8](../process/rfc-process.md) this RFC becomes **normative only on reflection into `spec/`**; status advances to **Final** once the Documentation Changes (§12) land in Books 11 §03/§06, 12 §04/§05 and the Glossary.
+
+> **Final 2026-07-16.** §12 reflected into `spec/` (Book 12 §04 §3 / §05 §2–§3.1/§4/§7, Book 11 §03 §2/§8, Book 11 §06 §3) and the Glossary in this change; the RFC is now normative. See CHANGELOG.
 
 ## 1. Executive Summary
 Capability grants are established at **install**: installation "surfaces the Package's declared required capabilities for explicit authorization" ([Book 12 §Ch05 §3](../spec/book-12-packages/05-install-lifecycle.md), [Book 12 §Ch02 §4](../spec/book-12-packages/02-package-manifest.md), [Book 03 §Ch09 §5](../spec/book-03-kernel/09-plugin-and-package-managers.md)). But the **upgrade** flow has no such step — it is *"re-resolve jointly-consistent → verify → apply delta reconciled → Active"* ([Book 12 §Ch05 §2](../spec/book-12-packages/05-install-lifecycle.md)), with **no capability re-authorization**. Grants are attached to the `Package`, not to the specific verified code that was authorized, and they persist unchanged across a version change. Two holes follow:

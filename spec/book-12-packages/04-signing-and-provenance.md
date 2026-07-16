@@ -1,6 +1,6 @@
 # Book 12 · Chapter 04 — Signing and Provenance
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P7, P8, P10. Part of AEP-0003. Companion to Book 11 (Security).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0008 (identity change re-opens authorization); realizes principles P7, P8, P10. Part of AEP-0003. Companion to Book 11 (Security).*
 
 > A Package is untrusted code from a potentially hostile author (§Ch01 §5). Before the platform admits it, it must verify *who* published it and *that it has not been tampered with* — signing and provenance. This chapter specifies verification before install, supply-chain provenance, and the secret-freedom of published Packages. This is the ecosystem's first line of defense against supply-chain attack.
 
@@ -23,6 +23,8 @@ Beyond "who signed it," provenance attests **how the Package was built and where
 
 Verification establishes *identity and integrity*; it does **not** grant *authority*. Even a perfectly-signed Package from a trusted publisher gets **no** authority on install (§Ch01 §4): its declared capabilities are surfaced for explicit least-privilege authorization (Book 03 §Ch09 §5, Book 11 §03). Signing answers "is this really from X, untampered?"; capabilities answer "what may it do?" — two independent questions. A trusted signature does not imply broad authority; a Package from a trusted publisher still runs least-privilege and isolated (Book 11 §10). This separation is deliberate: it means a compromised trusted publisher cannot escalate beyond the capabilities a workspace explicitly grants.
 
+**Identity is checked per artifact, and a change of it re-opens authorization.** The separation above bounds the *set* of authority, but the set alone is not the whole guarantee: an upgrade substitutes the code while the Package name stays fixed, so a takeover or key compromise could otherwise exercise *already-granted* sensitive authority under code no one reviewed — without ever requesting a new capability. Because verification establishes the signer's identity for **each** artifact, that substitution is **detectable**, and grants are bound to the identity they were authorized against (Book 11 §03 §2). A signing-identity change therefore forces re-authorization of sensitive-class capabilities on upgrade (§Ch05 §3.1). So the guarantee is properly stated as: a compromised publisher can neither escalate beyond the granted capabilities **nor silently inherit them for new code**.
+
 ## 4. Published Packages are secret-free (P7)
 
 A Package is a **distributed artifact** — installed by many workspaces — so a secret embedded in one would leak to *every* installer. Therefore:
@@ -39,6 +41,6 @@ A Package is a **distributed artifact** — installed by many workspaces — so 
 
 1. A Package's signature and integrity are verified before install; a missing/invalid signature blocks install (fail-closed) unless policy explicitly permits unsigned Packages as an audited relaxation.
 2. The signature covers manifest + contents, so what is installed is exactly what was signed; supply-chain provenance attests build origin and is retained/auditable (P10).
-3. Verification establishes identity and integrity but grants no authority; even a trusted-publisher Package runs least-privilege, isolated, and authorized only by explicit capability grants (P8).
+3. Verification establishes identity and integrity but grants no authority; even a trusted-publisher Package runs least-privilege, isolated, and authorized only by explicit capability grants (P8). Identity is verified per artifact, and grants bind to it: a compromised publisher can neither escalate beyond the granted capabilities nor silently inherit them for substituted code — a signing-identity change re-authorizes sensitive-class capabilities on upgrade (§Ch05 §3.1).
 4. Published Packages are secret-free: publishing validation rejects secret-shaped material; Packages reference secret classes only, never values, and install never introduces a secret (P7).
 5. Trust is legible (verified publisher, conformance, reputation) and installation is policy-governed, so supply-chain risk is managed as policy (P9).

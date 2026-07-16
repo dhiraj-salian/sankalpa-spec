@@ -15,6 +15,12 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Supply chain
+
+- **Authorized-against identity** — The verified identity a capability grant was made against: for a Package, its version, publisher identity, and signing-key/artifact identity at the moment of authorization. Authority is conveyed to the verified *code* that was authorized, not to a Package name in perpetuity. (RFC-0008)
+- **Grant carry-forward** — Retaining a Package's existing grants across an upgrade without fresh consent, permitted only when the signing identity is unchanged and the declared capabilities are the same or narrower. Recorded and auditable. (RFC-0008)
+- **Upgrade re-authorization** — Re-evaluating a Package's grants against the newly verified artifact before it becomes `Active`: broadened authority is surfaced for explicit authorization, and a signing-identity change re-authorizes sensitive-class capabilities even when the capability set is unchanged — the maintainer-compromise and package-takeover defense. (RFC-0008)
+
 ## Knowledge sync
 
 - **Synced-base stamp** — The controller-managed `syncedFrom` front-matter field on a vault note, recording the `resourceVersion`/`generation` the note was last reconciled from. It is the merge base a three-way Knowledge reconcile needs, and exists because a direct/offline vault edit observes no `resourceVersion` and so cannot rely on optimistic concurrency alone. An absent, malformed, or unknown stamp means an *unknown* base, which is conflict-surfaced, never merged. (RFC-0006)
