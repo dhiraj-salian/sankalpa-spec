@@ -1,6 +1,6 @@
 # Book 11 · Chapter 07 — The Approval Engine
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P9, P10 (and P7, P8). Companion to Book 05 §Ch04 (guards), Book 13 (Web Runtime), Book 14 §06 (runtime checkpoint).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0009 (assurance step-up); realizes principles P9, P10 (and P7, P8). Companion to Book 05 §Ch04 (guards), Book 13 (Web Runtime), Book 14 §06 (runtime checkpoint).*
 
 > Some actions are too consequential — irreversible, costly, or sensitive — to run on machine judgment alone. The Approval Engine gates such actions on **explicit human authorization**, captured non-repudiably. It is where "human-in-the-loop" becomes a first-class, governed mechanism rather than an ad-hoc pause.
 
@@ -43,6 +43,7 @@ An approval decision MUST be **non-repudiable**: bound to the authenticated iden
 
 - **Fail-closed.** Absence of an approval, a denial, or an expiry all **stop** the gated action (Book 03 §Ch13 §1). The safe default is *do not act*. An approval-gated effect never proceeds on a missing or ambiguous decision.
 - **Least-authority approvers.** *Who* may approve is itself capability-gated (P8): only designated approvers for the workspace/effect-class may decide. A subject cannot approve an action it is not authorized to approve; separation-of-duty policies (the requester ≠ the approver) are expressible.
+- **Minimum assurance per consequence class.** An approval requirement declares the **minimum assurance** (Ch 08 §4.2) at which its decision may be taken. Because the decision is rendered on the Web Runtime (Book 13 §Ch06 §2), which authenticates the approver, the approval surface *is* the step-up (Ch 08 §4.3): a request may arrive on a `low`-assurance channel, but the decision is taken at `high`. A decision offered below the declared minimum is refused, fail-closed.
 - **Scoped to the specific action.** An approval authorizes the *specific* gated instruction, not a category. It is not a reusable blanket grant (that would be ambient authority by another name, Ch 03 §1).
 
 ## 6. Interaction with the runtime checkpoint (P9)

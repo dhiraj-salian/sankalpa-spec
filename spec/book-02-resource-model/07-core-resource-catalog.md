@@ -63,7 +63,8 @@
 | Kind | Lifecycle | Owner | `spec` | `status.actualState` |
 |------|-----------|-------|--------|----------------------|
 | `Conversation` | Long-lived | Book 13 | A channel-spanning dialogue; participants; correlation. | Turns; linked intents. |
-| `Session` | One-shot | Book 11/13 | An authenticated interaction context; identity; scope. | Activity; expiry. |
+| `Session` | One-shot | Book 11/13 | An authenticated interaction context; identity; scope; assurance. | Activity; expiry. |
+| `ChannelBinding` | Long-lived | Book 11/13 | A verified binding of a channel-native identifier to a `User` in a workspace; assurance level. | Enrollment/verification state. |
 | `Artifact` | Long-lived | Book 13 | A produced output (doc, site, file); reference to content; content **hash**. | Hosting/availability; version. |
 | `Service` | Long-lived | Book 13 | A long-running exposed capability (e.g. a hosted API/site). | Endpoints; health. |
 | `Knowledge` | Long-lived | Book 09 | A unit of curated knowledge (fact/runbook/relationship…); vault + graph refs. | Sync state (vault ⇄ graph); provenance/trust. |

@@ -10,7 +10,7 @@ For each channel the questions are: how does it translate an inbound message int
 
 ## 2. Messaging channels (Telegram, WhatsApp, Slack, Discord, Teams)
 
-- **Inbound:** a user message becomes an `Intent` (or a reply within a Conversation, §Ch05); the channel's user identity maps to a Session (Book 11 §08) at the Kernel API.
+- **Inbound:** a user message becomes an `Intent` (or a reply within a Conversation, §Ch05); the channel's user identity is verified against a `ChannelBinding` and resolved to a Session at the Kernel API, carrying that channel's assurance level (Book 11 §08 §4.1–4.2). Messaging-app and email sender identifiers are weak evidence — a `From` header is trivially spoofable, a number is SIM-swappable, an account is compromisable — so they carry authority only via a verified binding, and consequential actions step up to the Web Runtime (§Ch06, Book 11 §08 §4.3).
 - **Outbound:** text results render inline; rich results (approvals, dashboards, files) render as **Web Runtime URLs** (§Ch02 §4) the user clicks — so an approval is decided on the trusted web page, not via a chat button that reconstructs the decision surface insecurely.
 - **Multi-channel:** a Conversation may start in one messaging app and continue in another or by email, correlated by Session in the Kernel (§Ch05).
 

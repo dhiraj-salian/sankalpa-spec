@@ -1,6 +1,6 @@
 # Book 13 · Chapter 06 — Approval and Human-in-the-Loop
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P7, P8, P9, P10. Companion to Book 11 §07 (Approval Engine), Book 08 §02 (clarification), §Ch01 (Web Runtime).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0009 (approval page as assurance step-up); realizes principles P7, P8, P9, P10. Companion to Book 11 §07 (Approval Engine), Book 08 §02 (clarification), §Ch01 (Web Runtime).*
 
 > Human-in-the-loop interactions — approvals and clarifications — are where a person is brought into the platform's flow to authorize or disambiguate. This chapter specifies how these are *rendered and captured* at the interface layer. The governance mechanisms are normative in their home Books (Approval Engine Book 11 §07, clarification Book 08 §02); this chapter specifies the human-facing surface that makes them real, and its security discipline.
 
@@ -13,7 +13,7 @@ Both bring a human into the loop; both are surfaced through channels (§Ch02) an
 
 ## 2. Approvals are rendered with full consequence, on a trusted surface
 
-When the Approval Engine (Book 11 §07) requires a decision, the interface layer renders the request as a **Web Runtime approval page** (§Ch01 §4), reached via a URL delivered through the user's channel (§Ch02 §4). The rendering MUST (Book 11 §07 §3):
+When the Approval Engine (Book 11 §07) requires a decision, the interface layer renders the request as a **Web Runtime approval page** (§Ch01 §4), reached via a URL delivered through the user's channel (§Ch02 §4). Because the page authenticates the approver on the Web Runtime, it is also the **assurance step-up surface** (Book 11 §08 §4.3): an Intent may arrive on a `low`-assurance channel, but the consequential decision is taken at `high` assurance here. The step-up is therefore not a new mechanism — it is this page, which already existed for exactly this reason. The rendering MUST (Book 11 §07 §3):
 - Show the **concrete consequence** — the declared effects, targets, and cost of the gated action (Book 04 §Ch06) — so the human gives *informed* consent, not a blind "approve?".
 - **Never display a secret value** (P7): an approval authorizes secret *use* by reference/class (Book 11 §07 §3), so the page shows "will use the `payments` credential," never the credential.
 - Capture a **non-repudiable decision** (Book 11 §07 §4) bound to the authenticated approver's identity (Book 11 §08), timestamped, and audited (P10).
