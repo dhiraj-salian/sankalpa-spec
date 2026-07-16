@@ -1,6 +1,6 @@
 # Book 11 · Chapter 11 — Consolidated Security Invariants
 
-*Nature: **Normative**. · Reflects: SECURITY.md, all of Book 11; realizes P1, P7, P8, P9, P10. This is the checklist the security review gate enforces.*
+*Nature: **Normative**. · Reflects: SECURITY.md, all of Book 11, RFC-0010 (SI-13); realizes P1, P7, P8, P9, P10. This is the checklist the security review gate enforces.*
 
 > This chapter consolidates the security invariants scattered through the specification into one authoritative list — the checklist the [security review gate](../../process/review-gates.md) applies to every change, and the criteria against which any design is judged. A proposal that weakens any invariant here is a security issue by definition (SECURITY.md §Non-negotiable invariants). This chapter is normative and load-bearing: it is the single place a reviewer confirms a change is safe.
 
@@ -48,9 +48,12 @@ Any failure of a security mechanism results in refusal, not permission; degradat
 ### SI-12 — Defense in depth
 No single mechanism is load-bearing alone; each asset is protected by multiple independent layers. *Enforced by:* the layering of SI-2 (reference + Broker + isolation + audit) and SI-4 (three checkpoints), etc.
 
+### SI-13 — A runtime's observability output is verified, not trusted
+The runtime is both the sole holder of a materialized secret and an untrusted plugin, so its observability output (`RuntimeEvent`s, logs, traces, metrics) is checked against the execution's materialized-value digest set **before any sink** — Event Bus, reasoning ledger, Experience, logs, audit. A match is dropped at the boundary, fails the Execution with a `SecretEgressViolation` condition, and is escalated and attributed (never auto-revoking the runtime, which would be a self-inflicted-DoS lever). *Scope:* covers verbatim emission and a closed set of common encodings; a runtime that transforms the value or exfiltrates across B4 is bounded by SI-3/SI-6/SI-7 (declared effects, egress policy, isolation), not by this check. *Enforced by:* Book 14 §04 §2.1, Book 06 §Ch02 §5, Book 11 §02 §B2, §Ch10 §4/§6.
+
 ## 3. How this chapter is used
 
-- **Security review gate.** Every change of tier T2+ (and any change touching secrets, capabilities, policy, trust boundaries, or isolation) is checked against SI-1…SI-12 via the [security-review template](../../templates/security-review-template.md) (Book 00 §review-gates). The reviewer confirms each relevant invariant holds or the change is blocked.
+- **Security review gate.** Every change of tier T2+ (and any change touching secrets, capabilities, policy, trust boundaries, or isolation) is checked against SI-1…SI-13 via the [security-review template](../../templates/security-review-template.md) (Book 00 §review-gates). The reviewer confirms each relevant invariant holds or the change is blocked.
 - **Design judgment.** Any RFC/ADR/AEP states which invariants it touches and how each is upheld (CONTRIBUTING §mandatory shape, §9 Security Impact). Weakening one requires an RFC, the security Domain Lead's sign-off, and — for a non-negotiable invariant — is presumptively rejected.
 - **Conformance.** Extension conformance suites assert the invariants an extension must uphold (secret-safety at every level, no undeclared effects, isolation) — SI-2/SI-6/SI-7 are tested, not trusted.
 
@@ -61,7 +64,7 @@ If the whole Book reduces to a sentence: **an untrusted, non-deterministic edge 
 ## 5. Invariants (normative summary)
 
 1. SI-1…SI-5 are the non-negotiable, fail-closed invariants (P1, P7, P8, P9, P10); weakening any is a security issue by definition.
-2. SI-6…SI-12 are the supporting invariants (untrusted-by-default, isolation, least privilege, tenancy, approval, out-of-band credentials, fail-closed, defense in depth).
+2. SI-6…SI-13 are the supporting invariants (untrusted-by-default, isolation, least privilege, tenancy, approval, out-of-band credentials, fail-closed, defense in depth, verified observability egress).
 3. The security review gate checks every applicable invariant on every qualifying change; unmet invariants block the change.
 4. Extension conformance suites test SI-2/SI-6/SI-7 rather than trusting them.
 5. The model in one sentence: untrusted edge → verified secret-free effect-declared IR; trusted core enforces capabilities/policy/audit at every boundary; secrets are values only transiently at execution; every failure is fail-closed.

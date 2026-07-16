@@ -1,6 +1,6 @@
 # Book 11 · Chapter 02 — Trust Boundaries
 
-*Nature: **Normative**. · Reflects: ADR-0002, RFC-0009 (channel identity verified at B1); realizes principles P4, P7, P8. Companion to Book 03 (Kernel), Book 01 §04 (principles).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0009 (channel identity verified at B1), RFC-0010 (runtime observability egress); realizes principles P4, P7, P8. Companion to Book 03 (Kernel), Book 01 §04 (principles).*
 
 > A trust boundary is a line across which data or control passes between components of different trust levels; at every such line, something must be checked. This chapter enumerates Sankalpa's trust boundaries, states what crosses each and what is checked, and identifies the one boundary that dominates all others: the untrusted-plugin boundary.
 
@@ -34,7 +34,8 @@ For each boundary: what crosses, and what is checked at the crossing.
 
 ### B2 — Plugin ↔ Kernel (the dominant boundary, §3)
 - **Crosses:** a planner receives Goals + non-secret context and returns High IR; a runtime receives a RuntimeGraph + reference-bearing `executionCtx` and returns Events; a backend returns a RuntimeGraph; providers exchange domain data.
-- **Checked:** the plugin holds only least-privilege grants (P8, Ch 03); its inputs are secret-free (P7); its security/determinism-relevant output is **re-verified** (Book 04 §Ch08, Book 05 §Ch05 §5); it runs isolated and resource-limited (Ch 10).
+- **Checked:** the plugin holds only least-privilege grants (P8, Ch 03); its inputs are secret-free (P7) **for every plugin class except the runtime** (see below); its security/determinism-relevant output is **re-verified** — High IR (Book 04 §Ch08), pass/backend output and RuntimeGraph conformance (Book 05 §Ch05 §5), and a runtime's **observability output** (Book 14 §04 §2.1); it runs isolated and resource-limited (Ch 10).
+- **The runtime is the exception this boundary must name.** Its inputs are *not* secret-free: B3 delivers **materialized values** into its execution context by design, making it the sole holder of a plaintext secret *and* an untrusted plugin (Ch 10 §1). It is therefore the one plugin whose **output could carry a secret**, and the only one whose observability stream (`RuntimeEvent`s, logs, traces — which the Runtime Manager reflects onto the bus, into the reasoning ledger, Experience, and audit) is checked against the execution's materialized-value digest set before any sink (Book 14 §04 §2.1). Stated without this exception, "its inputs are secret-free" would describe every plugin *except* the one that matters most here.
 
 ### B3 — Kernel ↔ Secret Broker protected store (the secret boundary)
 - **Crosses:** secret *references* in; materialized *values* out — but only into a runtime's execution context, only at execution (Ch 04, Book 06 §Ch06).
@@ -56,11 +57,11 @@ For each boundary: what crosses, and what is checked at the crossing.
 
 B2 is the boundary the architecture is most shaped around, because plugins run arbitrary code and are the richest attack surface (Ch 01 §3). Three rules govern every crossing of B2:
 
-1. **Least privilege in.** A plugin receives only the attenuated capabilities it needs (Ch 03 §attenuation) and secret-free inputs (P7). It cannot reach what it was not granted.
-2. **Verify out.** Anything security/determinism-relevant a plugin returns is re-verified by the core before use (Book 04 §Ch08, Book 05 §Ch08). The core never trusts a plugin's claim about its own output.
+1. **Least privilege in.** A plugin receives only the attenuated capabilities it needs (Ch 03 §attenuation) and secret-free inputs (P7) — except the runtime, which by design receives the materialized secrets of the execution it runs, and only those (§B2, §B3). It cannot reach what it was not granted.
+2. **Verify out.** Anything security/determinism-relevant a plugin returns is re-verified by the core before use (Book 04 §Ch08, Book 05 §Ch08) — including a runtime's observability output, which is the one plugin output that could carry a secret (Book 14 §04 §2.1). The core never trusts a plugin's claim about its own output, and a *pre-admission* conformance test is not a substitute for a boundary check.
 3. **Contain always.** The plugin is isolated and resource-limited (Ch 10); its compromise or crash is contained to its own work (Book 03 §Ch13).
 
-Together these mean a fully malicious plugin is bounded to: producing un-verifiable/forbidden output (caught), consuming its resource budget (bounded), and leaking its own secret-free inputs (harmless). It cannot escalate, leak secrets, or corrupt the core.
+Together these mean a fully malicious plugin is bounded to: producing un-verifiable/forbidden output (caught), consuming its resource budget (bounded), and leaking its own secret-free inputs (harmless). It cannot escalate authority, obtain a secret it was not authorized to materialize, or corrupt the core. The bound for a **runtime** — the one plugin legitimately holding a plaintext secret — is stated exactly, including where it stops, in Ch 10 §6: it cannot poison the platform's durable stores with that value, but transformation and B4 exfiltration are bounded by effect declaration, egress policy, and isolation rather than by output-verification.
 
 ## 4. Data classification across boundaries
 

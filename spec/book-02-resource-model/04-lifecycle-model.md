@@ -1,6 +1,6 @@
 # Book 02 · Chapter 04 — Lifecycle Model
 
-*Nature: **Normative**. · Reflects: ADR-0002, RFC-0004 (terminal conditions, not phases), RFC-0007 (store- vs run-admission; bounded Pending); realizes principles P3, P5, P6.*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0004 (terminal conditions, not phases), RFC-0007 (store- vs run-admission; bounded Pending), RFC-0010 (`SecretEgressViolation` condition); realizes principles P3, P5, P6.*
 
 > Every Resource has a lifecycle (P3). This chapter defines the kind-independent lifecycle: the `phase` enum, the legal transitions, finalizers, deletion semantics, and garbage collection. Kinds MAY define sub-states inside a phase but MUST map onto these phases.
 
@@ -25,7 +25,7 @@ Notes:
 - Long-lived kinds (Service, Runtime, Policy) live in `Active`; they never reach `Succeeded`.
 - One-shot kinds (Execution, Compilation) end in `Succeeded`/`Failed` and are later reclaimed (§5).
 - `phase` is a summary; the authoritative fine-grained state is always `conditions` + `actualState`.
-- **Outcomes finer than the two terminal phases are `conditions`, never new phases.** An Execution that rolled back is `Failed` with a `Compensated` condition; one stopped early is `Failed`/`Cancelled`; one left externally inconsistent is `Failed` with a `CompensationFailed` condition (RFC-0004, Book 06 §Ch03 §4); one that could never be given capacity is `Failed` with a `Shed` or `DeadlineExceeded` condition (RFC-0007, Book 03 §Ch07 §2.5). This is the direct consequence of "a kind MUST NOT invent a new top-level phase": vocabulary like *Compensated*/*Cancelled*/*CompensationFailed*/*Shed*/*DeadlineExceeded* lives in `conditions`, which is why consumers (Experience capture, audit) MUST read conditions, not just phase, to distinguish these.
+- **Outcomes finer than the two terminal phases are `conditions`, never new phases.** An Execution that rolled back is `Failed` with a `Compensated` condition; one stopped early is `Failed`/`Cancelled`; one left externally inconsistent is `Failed` with a `CompensationFailed` condition (RFC-0004, Book 06 §Ch03 §4); one that could never be given capacity is `Failed` with a `Shed` or `DeadlineExceeded` condition (RFC-0007, Book 03 §Ch07 §2.5); one whose runtime tried to egress a secret is `Failed` with a `SecretEgressViolation` condition (RFC-0010, Book 14 §04 §2.1). This is the direct consequence of "a kind MUST NOT invent a new top-level phase": vocabulary like *Compensated*/*Cancelled*/*CompensationFailed*/*Shed*/*DeadlineExceeded*/*SecretEgressViolation* lives in `conditions`, which is why consumers (Experience capture, audit) MUST read conditions, not just phase, to distinguish these.
 - **`Pending` is store-admission, not run-admission, and it is bounded.** "Store-admitted" means the write succeeded and the Resource exists; it does **not** mean the work will run. For schedulable kinds the Scheduler decides *run-admission* separately (Book 03 §Ch07 §2.1), and the gap between the two is governed: a `Pending` unit is either held with a surfaced `AdmissionPending` condition or terminated `Failed`/`Shed`/`DeadlineExceeded` within a bounded time (Book 03 §Ch07 §2.4–2.5). `Pending` is therefore never an indefinite, silent resting place — the "cannot yet begin" case above always resolves.
 
 ## 3. Legal transitions
