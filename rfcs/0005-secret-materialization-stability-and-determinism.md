@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Security & Runtimes / Books 11, 06 (and Books 01, 04) |
 | **Shepherd (Domain Lead)** | Security Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. Amends the determinism guarantee reflected from RFC-0002 (now normative in Book 01 §05 and Book 06 §03); builds on RFC-0002's replay modes (reconstruction vs. re-execution) and touches RFC-0004's `CompensationFailed` condition.
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0005 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011). Amends the determinism guarantee reflected from RFC-0002 (now normative in Book 01 §05 and Book 06 §03); builds on RFC-0002's replay modes (reconstruction vs. re-execution) and touches RFC-0004's `CompensationFailed` condition.
 
 ## 1. Executive Summary
 Secret materialization ([Book 06 §Ch06](../spec/book-06-runtimes/06-secret-materialization.md)) is specified as a **per-instruction, live-from-the-Broker** operation: at each instruction with a `SecretUse` effect, the runtime resolves the `SecretRef` binding site ([Book 04 §Ch04 §5](../spec/book-04-aos-ir/04-low-ir.md)) to a value, uses it, and discards it. Two properties are left unspecified, and each is load-bearing for a flagship invariant:

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Compiler & AOS IR / Books 05, 04 |
 | **Shepherd (Domain Lead)** | Compiler/Runtime Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. Second batch (0005–0011). Touches the determinization safety gates that RFC-0003 relies on.
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0011 reserved; open for review by the Compiler/Runtime Domain Lead and Reviewers. Second hardening batch (0005–0011). Repairs the backstop RFC-0003's determinization safety gates rely on. Note: §6 is a breaking change to the pass contract (staged migration, §13).
 
 ## 1. Executive Summary
 Semantics preservation is a named IR principle (**IR-P10**) and the compiler's transform contract: *"the optimized/lowered module, executed with equal inputs and resolved bindings, produces the same observable effects and outputs as the original"* ([Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md)). The spec claims it is **enforced**:

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Packages & Security / Books 12, 11 |
 | **Shepherd (Domain Lead)** | Security Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. First supply-chain (Book 12) hardening finding; independent of RFC-0002–0007.
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0008 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011); first supply-chain (Book 12) finding, independent of the others.
 
 ## 1. Executive Summary
 Capability grants are established at **install**: installation "surfaces the Package's declared required capabilities for explicit authorization" ([Book 12 §Ch05 §3](../spec/book-12-packages/05-install-lifecycle.md), [Book 12 §Ch02 §4](../spec/book-12-packages/02-package-manifest.md), [Book 03 §Ch09 §5](../spec/book-03-kernel/09-plugin-and-package-managers.md)). But the **upgrade** flow has no such step — it is *"re-resolve jointly-consistent → verify → apply delta reconciled → Active"* ([Book 12 §Ch05 §2](../spec/book-12-packages/05-install-lifecycle.md)), with **no capability re-authorization**. Grants are attached to the `Package`, not to the specific verified code that was authorized, and they persist unchanged across a version change. Two holes follow:

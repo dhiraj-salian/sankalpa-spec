@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Interfaces & Security / Books 13, 11 |
 | **Shepherd (Domain Lead)** | Security Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. First Interfaces (Book 13) hardening finding; independent of RFC-0002–0008.
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0009 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011); first Interfaces (Book 13) finding, independent of the others.
 
 ## 1. Executive Summary
 A `Session` is "an authenticated interaction context [that] establishes *who* is interacting" ([Book 13 §Ch05 §2](../spec/book-13-interfaces/05-conversation-and-session.md), [Book 11 §Ch08 §3](../spec/book-11-security/08-identity-users-sessions.md)), and every Kernel API request "is authenticated before authorization" via "tokens, mTLS, OIDC" ([Book 11 §Ch08 §4](../spec/book-11-security/08-identity-users-sessions.md)). But a message from a messaging channel (Telegram, WhatsApp, Slack, Email, Voice — [Book 13 §Ch03](../spec/book-13-interfaces/03-reference-channels.md)) carries no such token — only a **channel-native, often-spoofable identifier**: an email `From`, a phone number, a Telegram user id. The spec says only that "the channel's transport identity is **mapped** to a Session/User at the Kernel API" ([Book 13 §Ch02 §… ingress](../spec/book-13-interfaces/02-channel-model.md), [Book 13 §Ch03 §… inbound](../spec/book-13-interfaces/03-reference-channels.md)) — a **mapping**, never an **authentication** — while simultaneously declaring the channel **untrusted** ([Book 13 §Ch02 §… untrusted](../spec/book-13-interfaces/02-channel-model.md)). Two holes result:

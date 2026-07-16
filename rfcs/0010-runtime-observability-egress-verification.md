@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Security & Observability / Books 11, 14 (and 06, 03) |
 | **Shepherd (Domain Lead)** | Security Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. Second batch (0005–0010). Reinforces the secret-freedom of the RFC-0002 reasoning ledger and composes with RFC-0005 (secret materialization stability).
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0010 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011). Reinforces the secret-freedom of the RFC-0002 reasoning ledger and composes with RFC-0005 (secret materialization stability).
 
 ## 1. Executive Summary
 The spec makes secret-freedom of observability a **hard, enforced** guarantee: *"no secret value is ever logged — anywhere, at any level, by any component … a hard guarantee, not a best-effort redaction"* ([Book 14 §Ch04 §2](../spec/book-14-observability-governance/04-logging.md)), *"This is **enforced, not merely intended**"* ([Book 03 §Ch12 §2](../spec/book-03-kernel/12-observability-manager.md)). Its stated basis is that *"there is nothing secret to log on those paths"* — the Observability Manager *"operates on the **already-secret-free** Event stream"* ([Book 03 §Ch12 §3](../spec/book-03-kernel/12-observability-manager.md)).

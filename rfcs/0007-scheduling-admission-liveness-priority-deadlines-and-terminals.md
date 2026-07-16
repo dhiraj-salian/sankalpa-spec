@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Kernel / Book 03 (and Book 02) |
 | **Shepherd (Domain Lead)** | Kernel Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. Shares the "no silent stall / explained terminal" spine with RFC-0004 (the `CompensationFailed` condition); independent of it.
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0007 reserved; open for review by the Kernel Domain Lead and Reviewers. Second hardening batch (0005–0011). Shares the "no silent stall / explained terminal" spine with RFC-0004 (the `CompensationFailed` condition); independent of it.
 
 ## 1. Executive Summary
 The Scheduler is specified to "apply fairness across workspaces/tenants," "honor per-work **deadlines** and **priorities** without **starving** low-priority tenants," and "hold or **shed** work deterministically" ([Book 03 §Ch07 §2.1](../spec/book-03-kernel/07-scheduler-and-runtime-manager.md)). These are stated as **guarantees but backed by no mechanism, no Resource fields, and no lifecycle outcome**:

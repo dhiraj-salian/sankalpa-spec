@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft |
+| **Status** | Proposed |
 | **Authors** | Dhiraj Salian (Phase 2 hardening review) |
 | **Domain / Book** | Knowledge / Book 09 (and Book 02) |
 | **Shepherd (Domain Lead)** | Knowledge Domain Lead |
@@ -10,7 +10,7 @@
 | **Supersedes / Superseded by** | — |
 | **Tracking issue** | TBD |
 
-> Draft raised by the Phase 2 hardening pass (adversarial review toward v1.0). Numbering provisional until a maintainer reserves it at PR time. Independent of RFC-0002–0005 (this is the first Knowledge-domain hardening finding).
+> Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0006 reserved; open for review by the Knowledge Domain Lead and Reviewers. Second hardening batch (0005–0011); first Knowledge-domain finding, independent of the others.
 
 ## 1. Executive Summary
 Vault ⇄ graph synchronization ([Book 09 §Ch05](../spec/book-09-knowledge/05-vault-graph-synchronization.md)) claims to prevent lost updates via optimistic concurrency: *"Each representation change carries the Knowledge Resource's `resourceVersion`; a stale change is rejected and re-reconciled against current state — no lost update"* (§Ch05 §4). Optimistic concurrency is defined as a compare-and-swap: *"Every write carries the `resourceVersion` the client observed; the store commits only if it still matches"* ([Book 02 §Ch08 §2](../spec/book-02-resource-model/08-storage-and-consistency.md)). **But the vault is Obsidian-compatible Markdown, edited by humans directly on the filesystem, offline, outside the Resource Manager** — the deliberate design of [Book 09 §Ch03](../spec/book-09-knowledge/03-vault-model.md) ("humans MAY author/edit the vault through Obsidian directly", §Ch03 §4). A direct file edit reads and carries **no** `resourceVersion`; the note front-matter ([Book 09 §Ch03 §2](../spec/book-09-knowledge/03-vault-model.md)) has no field for one. So for exactly the edit path the vault exists to support, the optimistic-concurrency premise does not hold: when the Knowledge controller later observes a directly-edited note, it has **no baseline** to reject a stale change against — and the "no lost update" guarantee is unbacked.
