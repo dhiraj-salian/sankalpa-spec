@@ -1,6 +1,6 @@
 # Book 09 · Chapter 06 — Knowledge in Planning
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P1, P7, P8, P10. Companion to Book 08 §02–§04 (planning, isolation), Book 10 §Ch04–§Ch05 (feedback).*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0006 (conflicted Knowledge withheld); realizes principles P1, P7, P8, P10. Companion to Book 08 §02–§04 (planning, isolation), Book 10 §Ch04–§Ch05 (feedback).*
 
 > This chapter specifies how Knowledge is *consumed* — retrieved and supplied to planners as context — and the guarantees that make that consumption safe and useful. It is the payoff of the whole Book: Knowledge exists to make planning better, and it must do so as **non-secret, provenance-tagged, trust-weighted** context that never compromises the planner-isolation invariants (Book 08 §04).
 
@@ -25,6 +25,7 @@ This boundary matters: Knowledge makes the planner better-informed, but it never
 
 Because Knowledge carries provenance and trust (§Ch02 §3), planning can — and MUST — use them:
 - **Weighting.** Higher-trust Knowledge is weighted more heavily; low-trust inferences inform but do not override authoritative facts (§Ch04 §3).
+- **Conflicted Knowledge is withheld, not down-weighted.** A unit marked conflicted by sync (§Ch05 §4) **MUST NOT** be returned by retrieval until the conflict is resolved. Trust weighting answers *"how much should this count?"*; a conflicted unit is not low-trust but **indeterminate** — the system does not yet know which assertion is true — so admitting it at reduced weight would still let a possibly-wrong assertion shape a plan. Withholding is fail-closed and consistent with §Ch05 §4's "never left quietly inconsistent."
 - **Citation.** A planner SHOULD be able to *cite* which Knowledge informed a Goal/plan (by reference), so the plan is explainable and the influence is auditable (P10). This citation flows into the Experience (Book 10 §Ch02) and back into the loop.
 - **Revisability.** Because influence is provenanced, when Knowledge is later corrected or retired (Book 10 §Ch04 §5), the effect on planning is traceable — you can see which plans were informed by since-retired Knowledge.
 
