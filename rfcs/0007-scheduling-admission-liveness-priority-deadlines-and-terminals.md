@@ -47,7 +47,7 @@ deadline:        <absolute timestamp | relative duration from admission>   # opt
 ```
 
 - `schedulingClass` maps to a numeric priority via workspace policy ([Book 11 §06](../spec/book-11-security/06-policy-engine.md)); a subject may only request classes its capability permits (P8), so priority is governed, not self-asserted.
-- `deadline` is optional; its absence means "no time bound" (may be held indefinitely *but always visibly*, §4.4). Its presence binds §4.3.
+- `deadline` is optional. Its absence means only that no **deadline-driven** terminal (§4.3) applies — **not** that the unit may wait forever: the bounded admission-retry/backpressure budget of §4.4 still applies, and its exhaustion sheds the unit. A hold is therefore always both **visible** (a surfaced condition, §4.4) and **bounded** (by deadline or budget), never indefinite — as [Book 03 §Ch13 §2](../spec/book-03-kernel/13-failure-modes-and-degradation.md) requires ("rather than growing unbounded queues"). Its presence binds §4.3.
 - These are `spec` fields (desired intent), so they participate in versioning (P6) and audit (P10) like everything else.
 
 **4.2 Starvation-freedom (normative).** The Scheduler's effective ordering **MUST** guarantee **bounded wait**: no admitted-eligible unit waits unboundedly while lower-or-equal-total-demand tenants make progress. A conforming Scheduler **MUST** implement at least one of:
@@ -96,7 +96,7 @@ Aging/fair-share tracking is O(pending units) bookkeeping, standard scheduler co
 Rewrite [Book 03 §Ch07 §2.1](../spec/book-03-kernel/07-scheduler-and-runtime-manager.md) to specify the mechanism (priority classes, aging/reservation, hold/shed, deadline terminal) behind each responsibility; amend [Book 02 §Ch04 §2](../spec/book-02-resource-model/04-lifecycle-model.md) to disambiguate store- vs run-admission and list the new `Failed` reasons; extend [Book 03 §Ch13 §2](../spec/book-03-kernel/13-failure-modes-and-degradation.md) to cover async-work shed alongside API shed; add SLIs to [Book 14 §Ch02](../spec/book-14-observability-governance/02-metrics.md). New Glossary entries: *Scheduling class*, *Run-admission*, *Aging*, *Shed (work)*, *DeadlineExceeded*.
 
 ## 13. Migration Strategy
-Additive and pre-1.0. Absent `schedulingClass` defaults to a policy-defined default class; absent `deadline` means no time bound (visible indefinite hold under §4.4, never a silent one). Existing `Execution`/`Compilation` schemas gain optional fields; a Scheduler that only implements aging (not reservation) is conformant. No stored artifact changes meaning.
+Additive and pre-1.0. Absent `schedulingClass` defaults to a policy-defined default class; absent `deadline` means no deadline-driven terminal, with the §4.4 backpressure budget still bounding the hold (visible and bounded, never indefinite and never silent). Existing `Execution`/`Compilation` schemas gain optional fields; a Scheduler that only implements aging (not reservation) is conformant. No stored artifact changes meaning.
 
 ## 14. Risks
 - **Deadline-less work held forever.** Mitigated by §4.4's mandatory `AdmissionPending` visibility and the bounded backpressure budget → `Shed`; "held" is never invisible, and operators/submitters always see it.
