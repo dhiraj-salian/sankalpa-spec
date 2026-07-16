@@ -1,6 +1,6 @@
 # Book 04 · Chapter 02 — IR Design Principles
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P1, P7, P9, P13.*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0011 (IR-P10 enforcement); realizes principles P1, P7, P9, P13.*
 
 > These are the invariants every AOS IR construct — in either level — MUST satisfy. They are to Book 04 what the Foundational Principles (Book 01 §04) are to the whole system. A proposed IR construct that violates one is rejected on that basis.
 
@@ -59,6 +59,7 @@ Data dependencies between steps **MUST** be explicit edges (values produced by o
 Every compiler pass and every lowering (Book 05) **MUST** preserve observable semantics: optimization does not change results, and lowering High → Low → RuntimeGraph does not change observable behavior.
 - Where a transformation could change behavior (e.g. adding a retry), it does so only in ways declared to be observationally equivalent under the effect/idempotency contract (Ch 04, Ch 06).
 - Rationale: users reason about High IR; if lowering could silently change meaning, that reasoning — and determinism — would be void.
+- **How it is enforced — and how far.** IR-P10 is **not** enforced by verification (Ch 08): verification is a total predicate on a *single* module and never consults the transform's input, so it cannot detect a well-formed output with different meaning. Enforcement is instead **effect-graph conservation** (Book 05 §Ch02 §4.1) — the comparative check of output against input, modulo each pass's declared effect-refinement relation — plus **dead-effect witnesses** for removals, and **optional per-compilation translation validation** (Book 05 §Ch02 §4.3) where a stronger guarantee is required. Conservation is **necessary, not sufficient**: full equivalence of two arbitrary modules is undecidable, so absent a certificate a pass's internal value-level correctness is not verified. This is the same discipline Ch 08 §2.6 applies to the halting problem — turn an undecidable question into a checkable artifact, and state plainly what remains unchecked.
 
 ## Precedence
 

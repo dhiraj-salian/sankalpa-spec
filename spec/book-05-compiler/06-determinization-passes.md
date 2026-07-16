@@ -1,6 +1,6 @@
 # Book 05 · Chapter 06 — Determinization Passes
 
-*Nature: **Normative**. · Reflects: RFC-0001, RFC-0003 (`shadowSource`/drift); realizes principle P13 (and P1). Companion to Book 10 §06 (Experience/determinization engine), Book 03 §Ch06 (Capability Manager).*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0003 (`shadowSource`/drift), RFC-0011 (real backstop); realizes principle P13 (and P1). Companion to Book 10 §06 (Experience/determinization engine), Book 03 §Ch06 (Capability Manager).*
 
 > Determinization is Sankalpa's compounding advantage made mechanical: **repeated non-deterministic reasoning is converted into reusable deterministic Capabilities** (P13). This chapter specifies the compiler side — how a determinized Capability, once discovered, is substituted into a plan, and the strict safety gates that keep the substitution sound. Discovery (mining Experience for candidates) is specified in Book 10 §06; the two meet here.
 
@@ -29,7 +29,7 @@ Substitution changes what executes, so it is gated harder than any optimization:
 3. **Effect subset.** The Capability's declared effects MUST be a **subset** of the reasoning's (Book 04 §Ch06 §7) — `Reason` removed, no new effect introduced. Deny-by-default still holds after substitution.
 4. **Evidence sufficiency & freshness.** The supporting evidence (occurrence count, variance bound, recency) MUST meet the policy threshold *at compile time*. Stale or thin evidence disqualifies substitution — determinization is revocable if the world changed.
 5. **Policy permission.** Determinization itself is policy-governed (P9): a workspace MAY forbid or constrain determinizing certain reasoning classes (e.g. anything touching a `pii` effect). A disallowed substitution is not applied.
-6. **Verification backstop.** The substituted module is re-verified and semantics-checked (Ch 02 §4). Because the Capability is typed, effect-subset, and evidence-backed, the substitution is a valid, effect-monotone transform.
+6. **Verification backstop.** The substituted module is re-verified (Book 04 §Ch08) and its effect graph is checked against the input's under this pass's **declared refinement relation** — substitution removes `Reason`, which the pass declares, so the change is checked rather than merely intended (Ch 02 §4.1). Because the Capability is typed, effect-subset, and evidence-backed, the substitution is a valid, effect-monotone transform. Note the split: substitution's *intended* semantic change (reasoning → Capability) is governed by **evidence** (§2, Book 10 §Ch06) and by drift retirement (§5); its *unintended* collateral changes are what conservation catches. Neither gate decides value-level equivalence — for that a pass declares `validated: true` (Ch 02 §4.3).
 
 If any gate fails, the pass **MUST** leave the reasoning node as-is. The safe default is *do not determinize*.
 
@@ -52,6 +52,6 @@ Over time, a workspace's most-repeated reasoning becomes a growing library of go
 1. Determinization substitutes a registered deterministic Capability for an *eligible*, *evidence-backed* reasoning node before lowering; it is never an optimization and never an assumption.
 2. Substitution requires: planner eligibility, exact type identity, effect-subset, sufficient/fresh evidence, and policy permission; failing any gate leaves the reasoning untouched (safe default).
 3. Discovery (Experience engine, Book 10) synthesizes/registers determinized Capabilities; the compiler only substitutes and re-verifies.
-4. Substituted modules are re-verified and semantics-checked; the transform is effect-monotone and type-preserving.
+4. Substituted modules are re-verified and their effect graph checked against the input under the pass's **declared refinement relation** (`Reason` removed) — the change is checked, not merely intended (Ch 02 §4.1); the transform is effect-monotone and type-preserving. Substitution's *intended* semantic change is evidence-gated (§2–3); its *unintended* collateral changes are what conservation catches.
 5. Determinization is reversible: retired Capabilities cause future compilations to fall back to the original reasoning; no stale deterministic answer is ever executed.
 6. The mechanism drives the system toward determinism over time while confining non-determinism to genuinely novel reasoning.

@@ -15,6 +15,13 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Compiler correctness
+
+- **Dead-effect witness** — The dataflow fact a pass must emit to justify removing an effect: evidence that no observable output depends on it. No witness, no removal. Turns an undecidable "is this really dead?" into a checkable artifact. (RFC-0011)
+- **Effect-graph conservation** — The mandatory comparative check of a transform's output against its input: the multiset of externally-visible effects, their observable order, and each effect's **target identity** are conserved, modulo the pass's declared effect-refinement relation. The first check in the pipeline that consults the original module. Necessary, not sufficient. (RFC-0011)
+- **Equivalence certificate** — The per-compilation proof a `validated: true` pass emits for *this* input/output pair, checked by a small trusted validator in the core. (RFC-0011)
+- **Translation validation** — Validating one concrete rewrite rather than a pass in general — decidable per instance, unlike full equivalence. Required for any pass running after an `Approval` is lowered into the plan. (RFC-0011)
+
 ## Observability egress
 
 - **Materialized-value digest set** — The per-Execution set of keyed digests `HMAC(k_E, value)` of every secret materialized into it, held by the Broker/Runtime Manager under a per-execution key the runtime never sees. Keyed (not a bare hash) so it is not an offline-guessable oracle; the substrate the egress check compares against. (RFC-0010)

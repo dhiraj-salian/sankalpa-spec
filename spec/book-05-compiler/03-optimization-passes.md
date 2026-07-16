@@ -1,6 +1,6 @@
 # Book 05 · Chapter 03 — Optimization Passes
 
-*Nature: **Normative**. · Reflects: RFC-0001; realizes principles P1, P13 and IR-P10.*
+*Nature: **Normative**. · Reflects: RFC-0001, RFC-0011 ("safe by construction" retracted); realizes principles P1, P13 and IR-P10.*
 
 > Optimization passes make plans cheaper, faster, and more reliable **without changing what they mean** (IR-P10). This chapter defines the optimization stage: its correctness contract, the catalog of core optimizations, and the interaction with effects and cost. Optimization runs *before* policy validation (Ch 01 §2) so governance sees the plan's true, post-optimization effect set.
 
@@ -50,7 +50,11 @@ To keep the contract unambiguous, optimization **MUST NOT**:
 
 ## 5. Verification backstop
 
-As with all transforms, optimized IR is **re-verified** (Book 04 §Ch08) and checked for semantics preservation before the pipeline proceeds (Ch 02 §4). An optimization that produced ill-formed, under-declared, or non-deterministic IR is caught here and its output discarded. Optimizations are therefore *safe by construction*: even a buggy optimization pass cannot corrupt a compilation — at worst it is rejected.
+As with all transforms, optimized IR is **re-verified** (Book 04 §Ch08) and its **effect graph is checked against the input's** (Ch 02 §4.1) before the pipeline proceeds. An optimization that produced ill-formed, under-declared, or non-deterministic IR is caught by the former; one that added, removed, reordered, duplicated, or **retargeted** an effect is caught by the latter, and its output discarded.
+
+The bound this gives is real but **narrower than "safe by construction"**, and the difference is worth stating plainly rather than reassuringly. A buggy optimization pass **cannot** introduce an undeclared effect, non-determinism, ill-typing, or a secret leak, and **cannot** alter the effect graph undetected. But absent a translation-validation certificate (Ch 02 §4.3), it **can** still emit a module that is well-formed, well-typed, correctly effect-declared, deterministic, and effect-graph-conserving while computing the **wrong value inside it** — and that module passes every check and executes. Equivalence of two arbitrary modules is undecidable, so no gate here decides it in general; §4.3 is how a pass buys the stronger guarantee where it matters.
+
+An earlier formulation of this section claimed optimizations were *"safe by construction: even a buggy optimization pass cannot corrupt a compilation — at worst it is rejected."* That is **retracted**: it was true only of the defect classes the single-artifact checks happen to catch, and it invited exactly the "checked, therefore correct" reading that left IR-P10 without a mechanism for so long. Optimizations are safe *to the extent stated above* — which is considerable, and finite.
 
 ## 6. Invariants (normative summary)
 
@@ -59,4 +63,4 @@ As with all transforms, optimized IR is **re-verified** (Book 04 §Ch08) and che
 3. Live external effects and non-idempotent writes are never removed or merged; secrets are never folded/derived.
 4. Turning reasoning deterministic is determinization (Ch 06), never an optimization; optimization never assumes a reasoning result.
 5. Choice-based optimizations use an Experience-fed cost model; a wrong estimate affects speed, never correctness.
-6. Optimized IR is re-verified and semantics-checked; buggy optimizations are rejected, not trusted.
+6. Optimized IR is re-verified (single-artifact) **and its effect graph checked against the input's** (comparative, Ch 02 §4.1). A buggy optimization cannot introduce an undeclared effect, non-determinism, ill-typing, or a secret leak, and cannot alter the effect graph undetected — but absent a translation-validation certificate (Ch 02 §4.3) it can still compute a wrong value inside a conserved graph. "Safe by construction" is retracted (§5); the bound is real and finite.
