@@ -12,6 +12,8 @@
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0008 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011); first supply-chain (Book 12) finding, independent of the others.
 
+> **Final Comment Period — disposition: accept.** Called 2026-07-16 by the Security Domain Lead; concludes **2026-07-30** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. Blocking objections must cite concrete technical harm. **No FCP-blocking items**: all 21 open design questions across the batch were resolved before proposing, and the review pass fixed the two defects it found (0005's value/authority split, 0007's unbounded hold).
+
 ## 1. Executive Summary
 Capability grants are established at **install**: installation "surfaces the Package's declared required capabilities for explicit authorization" ([Book 12 §Ch05 §3](../spec/book-12-packages/05-install-lifecycle.md), [Book 12 §Ch02 §4](../spec/book-12-packages/02-package-manifest.md), [Book 03 §Ch09 §5](../spec/book-03-kernel/09-plugin-and-package-managers.md)). But the **upgrade** flow has no such step — it is *"re-resolve jointly-consistent → verify → apply delta reconciled → Active"* ([Book 12 §Ch05 §2](../spec/book-12-packages/05-install-lifecycle.md)), with **no capability re-authorization**. Grants are attached to the `Package`, not to the specific verified code that was authorized, and they persist unchanged across a version change. Two holes follow:
 

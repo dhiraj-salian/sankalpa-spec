@@ -12,6 +12,8 @@
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0011 reserved; open for review by the Compiler/Runtime Domain Lead and Reviewers. Second hardening batch (0005–0011). Repairs the backstop RFC-0003's determinization safety gates rely on. Note: §6 is a breaking change to the pass contract (staged migration, §13).
 
+> **Final Comment Period — disposition: accept.** Called 2026-07-16 by the Compiler/Runtime Domain Lead; concludes **2026-07-30** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. Blocking objections must cite concrete technical harm. **No FCP-blocking items**: all 21 open design questions across the batch were resolved before proposing, and the review pass fixed the two defects it found (0005's value/authority split, 0007's unbounded hold).
+
 ## 1. Executive Summary
 Semantics preservation is a named IR principle (**IR-P10**) and the compiler's transform contract: *"the optimized/lowered module, executed with equal inputs and resolved bindings, produces the same observable effects and outputs as the original"* ([Book 05 §Ch02 §4](../spec/book-05-compiler/02-pass-framework.md)). The spec claims it is **enforced**:
 

@@ -12,6 +12,8 @@
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0007 reserved; open for review by the Kernel Domain Lead and Reviewers. Second hardening batch (0005–0011). Shares the "no silent stall / explained terminal" spine with RFC-0004 (the `CompensationFailed` condition); independent of it.
 
+> **Final Comment Period — disposition: accept.** Called 2026-07-16 by the Kernel Domain Lead; concludes **2026-07-30** (10 working days). Solo-maintainer repo — author, Domain Lead, and Reviewer roles are currently held by one maintainer, so the FCP is recorded here for auditability rather than run on a thread; the ≥2-Reviewer gate ([process §7](../process/rfc-process.md)) is waived and noted until a second maintainer joins. Blocking objections must cite concrete technical harm. **No FCP-blocking items**: all 21 open design questions across the batch were resolved before proposing, and the review pass fixed the two defects it found (0005's value/authority split, 0007's unbounded hold).
+
 ## 1. Executive Summary
 The Scheduler is specified to "apply fairness across workspaces/tenants," "honor per-work **deadlines** and **priorities** without **starving** low-priority tenants," and "hold or **shed** work deterministically" ([Book 03 §Ch07 §2.1](../spec/book-03-kernel/07-scheduler-and-runtime-manager.md)). These are stated as **guarantees but backed by no mechanism, no Resource fields, and no lifecycle outcome**:
 
