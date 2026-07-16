@@ -1,6 +1,6 @@
 # Book 09 · Chapter 03 — The Vault Model
 
-*Nature: **Normative**. · Reflects: ADR-0001; realizes principles P2, P6, P7, P11. Companion to §Ch04 (graph), §Ch05 (sync).*
+*Nature: **Normative**. · Reflects: ADR-0001, RFC-0006 (synced-base stamp); realizes principles P2, P6, P7, P11. Companion to §Ch04 (graph), §Ch05 (sync).*
 
 > The vault is Knowledge's **human face**: an Obsidian-compatible Markdown vault humans can read, author, and curate directly. This chapter specifies the vault's structure, conventions, and the rule that it is an *authoritative representation* of Knowledge, not a disposable export. Choosing an open, human-native format is a deliberate bet on human curation as a first-class source of Knowledge (§Ch01 §4).
 
@@ -30,6 +30,9 @@ provenance:                          # source(s) + supporting Experiences (by re
   experiences: [exp/01K2..., exp/01K5...]
 tags: [deploy, reporting]
 lastReviewed: 2026-07-10
+syncedFrom:                          # controller-managed merge base (§Ch05 §4); humans do not set this
+  resourceVersion: "48213"           # the Knowledge resourceVersion this note was last reconciled from
+  generation: 7                      # metadata.generation at that reconcile (spec-version the note reflects)
 ---
 
 # Deploy the reporting service
@@ -40,6 +43,7 @@ see [[reporting-service-architecture]] and [[acme-deploy-policy]].
 
 Rules:
 - **Front-matter is the Resource binding.** `id` binds the note to its `Knowledge` Resource; front-matter carries the structured fields (kind, scope, trust, provenance) that the graph and governance rely on. A note without valid front-matter is not a governed Knowledge unit.
+- **`syncedFrom` is the controller-managed merge base.** The Knowledge controller **MUST** write it on every graph→vault render, recording the exact `resourceVersion`/`generation` the rendered note reflects; humans are not expected to set or maintain it. It exists because the vault is edited **directly and offline** (§4), where no `resourceVersion` is observed and optimistic concurrency (Book 02 §Ch08 §2) therefore has nothing to compare — so sync needs a recorded common ancestor to merge against (§Ch05 §4). It is an opaque version token carrying no value material, and is secret-free like the rest of the note (§5). A note that is edited while `syncedFrom` is **absent, malformed, or unknown to the store** has an *unknown* base and is conflict-surfaced rather than merged (§Ch05 §4); a **new** note authored by a human has no `id` and no `syncedFrom`, and is a create, not a conflict.
 - **Body is the human content.** Free Markdown, for people.
 - **Links are relationships.** `[[wiki-links]]` express relations (§Ch04); they are extracted into typed graph edges on sync (§Ch05).
 - **Organization** (folders, naming) SHOULD follow the workspace's conventions; the taxonomy `kindOfKnowledge`, not folder location, is authoritative for category.

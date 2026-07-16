@@ -15,6 +15,11 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Knowledge sync
+
+- **Synced-base stamp** — The controller-managed `syncedFrom` front-matter field on a vault note, recording the `resourceVersion`/`generation` the note was last reconciled from. It is the merge base a three-way Knowledge reconcile needs, and exists because a direct/offline vault edit observes no `resourceVersion` and so cannot rely on optimistic concurrency alone. An absent, malformed, or unknown stamp means an *unknown* base, which is conflict-surfaced, never merged. (RFC-0006)
+- **Three-way Knowledge reconcile** — Vault⇄graph synchronization of a changed note against three inputs — the synced base, the Resource's current state, and the edited note — merging one-sided changes and surfacing genuine both-sided conflicts, so a direct or offline vault edit cannot silently clobber a concurrent graph change. (RFC-0006)
+
 ## Execution & replay
 
 - **Fresh execution** — An execution mode in which each `CapturedReasoning` node invokes the model and each `Time`/`Random` effect reads its live input; every such output is recorded to the reasoning ledger. Contrast **Replay-with-record**. (RFC-0002)
