@@ -1,6 +1,6 @@
 # Book 11 · Chapter 02 — Trust Boundaries
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P4, P7, P8. Companion to Book 03 (Kernel), Book 01 §04 (principles).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0009 (channel identity verified at B1); realizes principles P4, P7, P8. Companion to Book 03 (Kernel), Book 01 §04 (principles).*
 
 > A trust boundary is a line across which data or control passes between components of different trust levels; at every such line, something must be checked. This chapter enumerates Sankalpa's trust boundaries, states what crosses each and what is checked, and identifies the one boundary that dominates all others: the untrusted-plugin boundary.
 
@@ -30,7 +30,7 @@ For each boundary: what crosses, and what is checked at the crossing.
 
 ### B1 — User/channel ↔ Kernel (the ingress boundary)
 - **Crosses:** Intent (natural language), commands, approvals, credential submissions.
-- **Checked:** authentication and session (Ch 08); capability authorization of the requested verb (Ch 03); admission/validation (Book 03 §Ch05); control-plane policy (Ch 06). Credential submissions are diverted to the Secret Broker's secure channel (Ch 05), never handled inline.
+- **Checked:** authentication and session (Ch 08) — including, for a channel-borne message, **verification of the asserted channel identity against a `ChannelBinding`** and capping the Session's authority by that channel's assurance (Ch 08 §4.1–4.2); capability authorization of the requested verb (Ch 03); admission/validation (Book 03 §Ch05); control-plane policy (Ch 06). Credential submissions are diverted to the Secret Broker's secure channel (Ch 05), never handled inline. The identifier a channel asserts is untrusted input like everything else crossing B1: it is verified here, not believed.
 
 ### B2 — Plugin ↔ Kernel (the dominant boundary, §3)
 - **Crosses:** a planner receives Goals + non-secret context and returns High IR; a runtime receives a RuntimeGraph + reference-bearing `executionCtx` and returns Events; a backend returns a RuntimeGraph; providers exchange domain data.

@@ -17,7 +17,7 @@ RFCs are substantial design proposals — the primary vehicle for evolving Sanka
 | [0006](0006-vault-base-version-stamping-for-lost-update-safe-sync.md) | Vault base-version stamping for lost-update-safe bidirectional Knowledge synchronization | Final |
 | [0007](0007-scheduling-admission-liveness-priority-deadlines-and-terminals.md) | Scheduling admission liveness — priority, deadlines, starvation-freedom, and the pending-work terminal | Accepted |
 | [0008](0008-grant-reauthorization-on-package-upgrade.md) | Capability-grant re-authorization on package upgrade — binding grants to verified version identity | Final |
-| [0009](0009-channel-identity-binding-and-assurance.md) | Channel identity binding and assurance — authenticating messaging-channel senders and gating cross-channel session continuity | Accepted |
+| [0009](0009-channel-identity-binding-and-assurance.md) | Channel identity binding and assurance — authenticating messaging-channel senders and gating cross-channel session continuity | Final |
 | [0010](0010-runtime-observability-egress-verification.md) | Runtime observability egress verification — enforcing secret-freedom where the only plaintext secret exists | Accepted |
 | [0011](0011-semantics-preservation-enforcement-for-compiler-passes.md) | Semantics-preservation enforcement for compiler passes — giving IR-P10 a mechanism | Accepted |
 

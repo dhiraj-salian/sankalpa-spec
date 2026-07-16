@@ -15,6 +15,13 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 - **Knowledge** — Curated, durable understanding (facts, architecture, policies, runbooks, relationships) that improves future Planning. *Not* short-term memory.
 - **Determinization** — The process of converting repeated non-deterministic reasoning into a reusable, deterministic Capability.
 
+## Channel identity
+
+- **Assurance level** — How strongly a channel proves the sender's identity *per message*: a fixed total order `low` < `medium` < `high` (bare identifier / authenticated account with SSO / Web Runtime OIDC or per-request token). A Session's effective authority is capped by its channel leg's assurance. Deliberately a total order, not a lattice, so "minimum assurance" is decidable. (RFC-0009)
+- **Channel binding** — A verified, workspace-scoped, revocable `ChannelBinding` Resource tying a channel-native identifier (Telegram id, email address, phone number) to a `User`. A channel-native identifier carries authority only via such a binding; unbound, it resolves to no Session. (RFC-0009)
+- **Enrollment** — Establishing a channel binding by proving control of the identifier from an already-authenticated context (a Web Runtime OIDC session issues a one-time challenge completed from the channel). The mechanism is a provider concern; the requirement is normative. (RFC-0009)
+- **Step-up** — Requiring a consequential action to be decided at a higher assurance than the channel it arrived on, on the Web Runtime — which, because it authenticates the approver, already *is* the step-up surface. (RFC-0009)
+
 ## Supply chain
 
 - **Authorized-against identity** — The verified identity a capability grant was made against: for a Package, its version, publisher identity, and signing-key/artifact identity at the moment of authorization. Authority is conveyed to the verified *code* that was authorized, not to a Package name in perpetuity. (RFC-0008)

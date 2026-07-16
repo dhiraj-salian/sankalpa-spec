@@ -1,6 +1,6 @@
 # Book 13 · Chapter 02 — The Channel Model
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P4, P7, P8, P11. Companion to Book 11 §02 (trust boundaries), Book 01 (channels).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0009 (channel identity verified, not mapped); realizes principles P4, P7, P8, P11. Companion to Book 11 §02 (trust boundaries), Book 01 (channels).*
 
 > A channel is a **transport adapter** — Telegram, Slack, Email, CLI, Voice, REST, MCP — that carries intent in and results out. This chapter specifies the channel model and its defining constraint: **channels carry, they do not decide.** A channel moves messages across the ingress boundary; all interpretation, authority, and governance happen inside the Kernel. This keeps the platform's behavior independent of how a user happens to reach it.
 
@@ -31,7 +31,7 @@ Channel (adapter interface):
 ## 3. The ingress boundary and its checks (Book 11 §02 §B1)
 
 A channel sits at the **ingress boundary** (Book 11 §02 §B1). Everything it carries inbound is **untrusted input** and is checked inside the Kernel, never by the channel:
-- **Authentication** — the channel's transport identity is mapped to a Session/User (Book 11 §08, §Ch05) at the Kernel API; the channel does not self-authorize.
+- **Authentication** — the channel's transport identity is **verified against a `ChannelBinding`** at the Kernel API and resolved to a Session/User carrying that binding's **assurance level** (Book 11 §08 §4.1–4.2, §Ch05); the channel does not self-authorize. The channel-native identifier (an email `From`, a phone number, a Telegram id) is an *untrusted claim* like everything else it carries (§3): it confers no identity until a verified binding exists, and an unbound identifier resolves to **no Session** (fail-closed, P8). Trusting the identifier as asserted would be the one place the Kernel took an untrusted channel at its word about *who is speaking*.
 - **Authorization/capability, admission, policy** — applied by the Kernel API pipeline (Book 03 §Ch02 §3) to whatever the channel delivered.
 - **Content is data, not command** — a message arriving via a channel is *input to be governed*, never an instruction that bypasses governance. (This mirrors the platform's own instruction-source discipline: transported content is data.)
 

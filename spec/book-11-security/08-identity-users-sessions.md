@@ -1,6 +1,6 @@
 # Book 11 · Chapter 08 — Identity, Users, and Sessions
 
-*Nature: **Normative**. · Reflects: ADR-0002; realizes principles P8, P10 (and tenancy). Companion to Book 03 §Ch02 (Kernel API pipeline), Book 13 §05 (Conversation/Session).*
+*Nature: **Normative**. · Reflects: ADR-0002, RFC-0009 (channel binding & assurance); realizes principles P8, P10 (and tenancy). Companion to Book 03 §Ch02 (Kernel API pipeline), Book 13 §05 (Conversation/Session).*
 
 > Authorization is capability-based (Ch 03), but capabilities are granted *to someone* and actions are attributed *to someone*. This chapter specifies identity: the User and Session Managers, authentication, how identity feeds the capability model **without** becoming ambient authority, and multi-tenant isolation.
 
@@ -36,6 +36,33 @@ A session's authority is itself an **attenuation** (Ch 03 §4) of the user's: a 
 - Authentication failure is **fail-closed**: an unauthenticated or expired request is denied, never treated as anonymous-with-defaults (Ch 01 §6).
 - The mechanism (tokens, mTLS, OIDC) is a provider concern; the *requirement* — authenticate before authorize before act — is normative and uniform.
 
+A message arriving over a **channel** (Book 13 §02) is not such a request: it carries no token, only a channel-native identifier that an **untrusted** adapter asserts. §4.1–4.3 specify how that claim becomes an authenticated identity.
+
+### 4.1 Channel identity binding
+
+A channel-native identifier — a Telegram user id, an email address, a phone number, a Slack user id — **is not an identity until it is bound**. A **`ChannelBinding`** Resource (Book 02 §Ch07) ties *(channelKind, channel-native-id) → User*, established by a **verified enrollment**:
+- Enrollment originates from an **already-authenticated context** — a Web Runtime OIDC session (Book 13 §01, §4) — which issues a one-time challenge the human completes *from the channel*, proving control of the identifier. The proof-of-control mechanism is a provider concern (an emailed link, a code sent from the handle, workspace SSO); the *requirement* — a verified binding before a channel identifier carries authority — is normative.
+- Until a binding exists, an inbound message from that identifier resolves to **no Session** and can do nothing beyond initiating enrollment (fail-closed, §1: an authenticated identity with no grants can do nothing — here there is no verified identity at all).
+- Bindings are **workspace-scoped** (§5), keyed `(User, workspace, channelKind, id)`. Authority is tenant-scoped, and a binding is authority-bearing: a global binding would let a handle verified in one workspace carry authority into another — the silent cross-tenant flow Ch 02 §B6 prohibits. The proof of control may be reused across a user's workspaces; the binding Resource is not.
+- Bindings are **revocable and audited** (Ch 09): revoking a compromised handle's binding promptly cuts off impersonation, using the same lever as any grant (§Ch03 §5).
+
+### 4.2 Assurance
+
+Each binding carries an **assurance level** — `low` < `medium` < `high` — reflecting how strongly the sender identity is proven **per message**, capped by what the channel can declare:
+- `low` — a bare identifier with no per-message proof (email `From`, caller-ID).
+- `medium` — a channel with authenticated accounts and workspace SSO (e.g. Slack).
+- `high` — a Web Runtime OIDC session or a per-request token.
+
+The set is a **fixed, totally-ordered ordinal**, deliberately not a policy-extensible lattice: assurance exists to *cap authority*, and "minimum assurance for this consequence class" (§4.3) is only decidable against a total order — two workspaces' incomparable "medium" would turn a security gate into an ambiguity.
+
+A `Session` established or continued over a channel leg **MUST** carry that leg's assurance, and its **effective authority is capped by it**: a Session holds no more than the intersection of the user's grants and what the assurance permits for that consequence class. This is a further attenuation in exactly the sense §3 already describes ("a session never holds more than the user, and often less — scoped to a channel, a task, a time window").
+
+### 4.3 Step-up, and cross-channel continuity
+
+- **Consequential actions step up.** Policy (Ch 06) and approval (Ch 07) declare a **minimum assurance** per consequence class. A high-consequence Intent arriving on a low-assurance channel is **not refused** — the channel *carries* it, as channels do (Book 13 §02 §1) — but the consequential action is gated on a step-up to a high-assurance surface: the **Web Runtime**, which already hosts approval and credential entry (Book 13 §02, §Ch06). The approval surface *is* the step-up; no new mechanism is introduced.
+- **Cross-channel continuity re-binds, never inherits.** A Conversation may span channels (Book 13 §05), but each leg's inbound identity **MUST** be independently bound (§4.1) to the same `User` before it contributes turns or Intents under the Session's authority, and the Session's effective authority is **re-capped to the active leg's assurance** (§4.2). A message on an unbound or weaker channel does **not** silently inherit a Session bootstrapped on a stronger one; at most it requests to join, gated by binding and step-up. Otherwise "starts in Slack, continues by email" would be an authority-laundering path: a spoofed `From` continuing an authenticated user's Session.
+- **Attribution records assurance** (Ch 09, P10): every turn and Intent records the binding and assurance it was authenticated under, so audit answers not just *who* but *how strongly proven* — distinguishing a Web Runtime action from an email one after the fact.
+
 ## 5. Multi-tenant isolation
 
 Tenancy is enforced through **Workspaces** (Book 02 §Ch02, §Ch08 §7) as the isolation boundary (Ch 02 §B6):
@@ -53,5 +80,6 @@ Plugins, controllers, and service accounts are identities too (§1): each is gra
 2. Users carry roles/membership that inform (bundle) least-privilege grants; roles are a granting convenience, not an authority bypass; deactivation revokes grants.
 3. Sessions are authenticated, bounded-scope, expiring attenuations of a user's authority; expiry and auth failure are fail-closed.
 4. Every Kernel API request is authenticated before authorization; there is no unauthenticated side door.
-5. Workspaces are the tenancy boundary; all access is workspace-scoped and cross-tenant flow requires an explicit, audited, capability-gated grant, threaded through every layer.
-6. Non-human actors (plugins, controllers, service accounts) are capability-scoped, attributed identities; no actor is anonymous.
+5. A channel-native identifier carries authority only via a verified, workspace-scoped, revocable `ChannelBinding`; an unbound identifier resolves to no Session. A Session's effective authority is capped by its channel leg's assurance level, consequential actions step up to a high-assurance surface, and cross-channel continuity re-binds rather than inherits — a channel's claim about *who is speaking* is verified, never taken on trust (P8, P10).
+6. Workspaces are the tenancy boundary; all access is workspace-scoped and cross-tenant flow requires an explicit, audited, capability-gated grant, threaded through every layer.
+7. Non-human actors (plugins, controllers, service accounts) are capability-scoped, attributed identities; no actor is anonymous.
