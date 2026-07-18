@@ -38,9 +38,10 @@ Two places. First, Book 03: Linux is the honest alternative to our microkernel, 
 - **Tacit conventions.** Much of Linux's contract lives in culture and lore; ADR-0001 requires ours to be written and reviewable (P12).
 
 ## 7. Open questions
-- Is our Kernel API stability promise *as strong* as Linux's (never break, ever) or the weaker "deprecate on schedule"? The two imply different ecosystem economics and should be stated explicitly rather than assumed.
-- Linux's internal-interface instability is what keeps it refactorable. Do we grant Managers the same freedom — and is "Manager-internal" a boundary we can actually hold once plugins start depending on observable behavior (Hyrum's Law)?
-- eBPF is a live example of safely running untrusted code *in* a monolith via verification rather than isolation. Is there an analog for Sankalpa — verified plugin code that earns a faster path than full isolation?
+- **Hyrum's Law is unaddressed.** Book 03 §Ch02 §7 fixes the *declared* contract, and Book 03 §Ch01 §5 grants Manager internals refactoring freedom. Neither speaks to what Linux learned the hard way: plugins come to depend on *observable behavior* the contract never promised — timing, ordering, error-message text, the incidental sequence of Events. Our conformance suite pins verb semantics and error behavior, which helps; it does not stop a plugin ecosystem from calcifying an unpromised behavior into a de-facto contract. Linux's answer is a social one ("we broke you, fix your code" for out-of-tree modules) that our P11 posture cannot use, since our plugins are permanently out-of-tree by design.
+- **eBPF has no analog here, and perhaps should.** It is a live demonstration that untrusted code can run *inside* a trusted core safely via verification rather than isolation. We verify plugin *output* (Book 11 §Ch10 §2.1) but never plugin *code*. Given that isolation is our per-interaction cost, a verified-code fast path is at least worth rejecting on the record.
+
+*Checked and answered, contrary to an earlier draft of this study: the Kernel API stability promise is stated precisely (Book 03 §Ch02 §7 — additive-only within a major version, breaking changes require an RFC, a major bump, and a migration path). It is "deprecate on schedule", not Linux's "never break, ever" — see §6.*
 
 ## 8. References
 - Linus Torvalds' "don't break userspace" mailing-list statements; the Tanenbaum–Torvalds debate (1992) on microkernels vs. monoliths; *Linux Kernel Development* (Love); `Documentation/process/stable-api-nonsense.rst`; Hyrum's Law.
