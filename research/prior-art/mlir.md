@@ -37,9 +37,9 @@ MLIR settles a question Book 04 would otherwise have to argue from scratch: whet
 - **Compile-time as the only concern.** MLIR's dialects lower toward machine code; our Low IR lowers toward *durable, distributed, effectful* execution (Book 06), where retries and compensation matter more than instruction selection.
 
 ## 7. Open questions
-- Two levels is a bet. If runtime backends diverge enough (a workflow engine vs. an edge runtime vs. a queue), does a third level appear between Low IR and RuntimeGraph, or does each backend absorb the difference? MLIR predicts pressure here; Book 06 should say where it lands.
-- MLIR's declarative op definitions make new abstractions cheap. Is there an analog for declaring Capability signatures and effects (Book 04 §Ch05) so that Packages get verification for free rather than hand-writing it?
-- Where exactly does a `Custom` effect stop being a legitimate extension and start being an unverifiable dialect in disguise?
+- **Where does a `Custom` effect stop being an extension and start being a dialect in disguise?** Book 04 §Ch06 §2 admits `Custom(namespace, name, payload)` and keeps it policy-visible and declared, which is the guardrail. But policy (Book 11 §Ch06) is written against the effect lattice, and a `Custom` effect's *refinement relation* to the core kinds is supplied by its declarer. A Package that declares a `Custom` effect the workspace's policy has no rule for is, from governance's seat, an effect that exists and is ungoverned — deny-by-default catches the undeclared, not the declared-but-unruled. MLIR's dialect fragmentation is the shape of this risk; the question is whether the boundary is drawn tightly enough.
+
+*Checked and answered, contrary to an earlier draft of this study: the "third level" question was mis-framed — the pipeline already has three (High IR → Low IR → RuntimeGraph, Book 05 §Ch05), with backend lowering owning the runtime-specific step, which is exactly where per-runtime divergence is absorbed.*
 
 ## 8. References
 - Lattner et al., "MLIR: Scaling Compiler Infrastructure for Domain Specific Computation" (CGO 2021); MLIR Language Reference and Dialect Conversion docs; MLIR's "progressive lowering" rationale documents.

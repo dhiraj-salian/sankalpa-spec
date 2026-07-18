@@ -40,9 +40,10 @@ Book 06 §Ch03 is Temporal's semantics, restated against IR. Our determinism obl
 - **No policy, no capability model, no secret discipline.** Activities run with ambient credentials; P7/P8 require the Secret Broker (Book 11 §Ch04) and capability grants instead.
 
 ## 7. Open questions
-- Recorded reasoning (RFC-0002) makes a replay faithful to a past model output. But is a replay that *skips the model* still a meaningful re-execution, or a recording playback? Book 06 §Ch03 §7 ("determinism vs. the real world") is where this must be honest.
-- Temporal's history-size limits forced continue-as-new. What is our bound on Execution history, and does a long-lived Execution need an analogous escape?
-- If a runtime backend *is* Temporal, how much of Book 06 §Ch03 is enforced by us versus delegated to it — and what does the conformance suite (§Ch07) actually test to tell the difference?
+- **Execution history has no stated size bound.** Temporal's history limits are what forced continue-as-new into existence — a mechanism nobody wanted and everybody needs. Our reasoning ledger (RFC-0002) and Event stream grow per Execution with no specified ceiling, and Book 02 §Ch04 §5's retention governs *terminal* Resources, which a long-running Execution is not. A multi-day approval wait (Book 11 §Ch07) accruing shadow-sampling observations (Book 10 §Ch06 §5) is exactly the shape that found Temporal's limit.
+- **What the runtime conformance suite tests, when the runtime is itself durable.** Book 06 §Ch07 and Book 11 §Ch10 §4 are explicit that conformance is a *pre-admission* test and never an enforcement boundary against a malicious runtime. So when a backend is Temporal — which enforces its own durability, its own retries, its own history — the suite tests that an *honest* implementation agrees with Book 06 §Ch03's observable semantics. What detects an honest-but-subtly-divergent one in production, after admission, is less clear.
+
+*Checked and answered, contrary to an earlier draft of this study: replay-that-skips-the-model (RFC-0002 splits **reconstruction** — no effects, the basis for conformance and golden-file tests — from **re-execution**, where effects re-fire under live policy; Book 06 §Ch03 §7 states the boundary honestly, that determinism is relative to declared inputs and effects, not a claim the world holds still).*
 
 ## 8. References
 - Temporal documentation on workflow determinism, activities, retries, and versioning; the Cadence/Temporal design lineage (Uber); Garcia-Molina & Salem, "Sagas" (1987); Helland, "Life beyond Distributed Transactions" (2007).
