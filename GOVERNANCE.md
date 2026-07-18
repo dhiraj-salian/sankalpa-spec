@@ -45,7 +45,7 @@ Idea → Draft (RFC/ADR/AEP) → Proposed → Review + Final Comment Period → 
 ```
 
 - **Final Comment Period (FCP):** Once a Domain Lead believes consensus is near, they call a **10-working-day FCP** with a disposition (accept / reject / postpone). Silence during FCP is assent. A single Steering Council member may extend or escalate.
-- **Consensus test:** Accepted requires (a) approval from the owning Domain Lead, (b) at least two Reviewer approvals, (c) no unresolved *blocking* objection. A blocking objection must state a concrete technical harm, not a preference.
+- **Consensus test:** Accepted requires (a) approval from the owning Domain Lead, (b) at least two Reviewer approvals, (c) no unresolved *blocking* objection. A blocking objection must state a concrete technical harm, not a preference. *(While a domain is unstaffed this test cannot be met; it is replaced there by the interim process of §7 — not waived.)*
 
 ## 5. Review gates
 
@@ -57,6 +57,16 @@ No normative change merges without passing the applicable gates in [`process/rev
 2. Escalate to the Domain Lead.
 3. Escalate to the Steering Council, which decides by simple majority. The Council *documents its reasoning* in an ADR.
 
-## 7. Amending governance
+## 7. Interim governance during bootstrap
 
-This document is amended only by RFC, a 15-working-day FCP, and a two-thirds Steering Council supermajority. Amendments are announced project-wide.
+The roles and quorum in §2 and §4 assume the project is staffed. It is not yet: [`MAINTAINERS.md`](MAINTAINERS.md) records every Domain Lead as vacant and no Steering Council, so the §4 consensus test (Domain Lead + ≥2 Reviewers) and the §8 amendment rule are currently **unsatisfiable**. Until a domain is staffed, that domain operates under the **interim review process** defined in [RFC-0012](rfcs/0012-interim-review-process.md) and [`process/interim-review.md`](process/interim-review.md):
+
+- Acceptance authority for an unstaffed domain is held **temporarily** by the founding maintainer (bootstrap authority), exercised **only** through a compensating-control package — a cooling-off period, an adversarial self-review, an independent adversarial pass, and provenance stamping — in place of the reviewers who do not yet exist.
+- Every interim acceptance is logged in the [interim-acceptance ledger](process/interim-acceptance-ledger.md) and **owes an independent re-review before v1.0**; the interim process cannot by itself produce a stable release.
+- The interim rules **lapse automatically, per domain**, the moment that domain records a Domain Lead + ≥2 Reviewers, and bootstrap authority ends project-wide once ≥3 Domain Leads seat a Steering Council.
+
+This is a founding act, adopted where §8 cannot yet be satisfied, and bound to its own supersession. See RFC-0012 §4.7 for the reasoning, disclosed rather than hidden.
+
+## 8. Amending governance
+
+This document is amended only by RFC, a 15-working-day FCP, and a two-thirds Steering Council supermajority. Amendments are announced project-wide. **Until a Steering Council exists**, this rule is unsatisfiable; governance is amended under the bootstrap authority of §7 (RFC-0012), and any such amendment — including RFC-0012 itself — is subject to ratification, revision, or retirement by the Council once seated.

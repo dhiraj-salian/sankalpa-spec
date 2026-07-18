@@ -9,6 +9,8 @@
 | [`aep-process.md`](aep-process.md) | Lifecycle of an Architecture Extension Proposal (public interfaces). |
 | [`review-gates.md`](review-gates.md) | The mandatory review gates every normative change must clear. |
 | [`versioning-and-stability.md`](versioning-and-stability.md) | Status labels, SemVer for the spec, and stability guarantees. |
+| [`interim-review.md`](interim-review.md) | **Bootstrap-period** substitute for the full quorum while the project is unstaffed ([RFC-0012](../rfcs/0012-interim-review-process.md)). |
+| [`interim-acceptance-ledger.md`](interim-acceptance-ledger.md) | The standing re-review queue of everything accepted under interim rules. |
 
 ## Choosing an instrument
 

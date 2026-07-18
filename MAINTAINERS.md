@@ -4,6 +4,14 @@
 
 This file is the source of truth for who holds which role. It is updated by PR with Steering Council approval.
 
+## Bootstrap authority (interim)
+
+While the roles below are unfilled, the project runs under the **interim review process** ([RFC-0012](rfcs/0012-interim-review-process.md), [`GOVERNANCE.md`](GOVERNANCE.md) §7). Acceptance authority for unstaffed domains is held **temporarily** by the founding maintainer, exercised only through RFC-0012's compensating controls and logged in the [interim-acceptance ledger](process/interim-acceptance-ledger.md). This is not a Domain Lead seat; it lapses automatically as domains are staffed (RFC-0012 §4.6).
+
+| Handle | Role | Scope | Ends when |
+|--------|------|-------|-----------|
+| Dhiraj Salian | Founding maintainer (bootstrap acceptance authority) | All domains with a vacant Domain Lead seat | Per domain: that domain seats a Domain Lead + ≥2 Reviewers. Project-wide: ≥3 Domain Leads seated. |
+
 ## Steering Council
 
 | Name / Handle | Affiliation | Term ends |

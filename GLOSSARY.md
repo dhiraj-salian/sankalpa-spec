@@ -122,3 +122,7 @@ Terms are grouped for reading but should be kept alphabetized within each group.
 
 - **RFC / ADR / AEP** — Request for Comments / Architecture Decision Record / Architecture Extension Proposal. See [`process/`](process/README.md).
 - **FCP** — Final Comment Period; the fixed window before a proposal is accepted or rejected.
+- **Interim Review Process** — The bootstrap-period substitute for the full review quorum, used while a domain has no seated Domain Lead or Reviewers. Replaces the missing reviewers with a Compensating-Control package rather than waiving scrutiny. (RFC-0012)
+- **Bootstrap Authority** — The temporary, self-limiting acceptance authority held by the founding maintainer for unstaffed domains under the Interim Review Process. Lapses automatically as domains are staffed; not a Domain Lead seat. (RFC-0012)
+- **Compensating Control** — A required substitute for a waived reviewer under the Interim Review Process: a cooling-off period, an adversarial self-review, an independent adversarial pass, and provenance stamping. (RFC-0012)
+- **Interim-Acceptance Ledger** — The standing queue of every artifact accepted under the Interim Review Process, each owing an independent re-review before v1.0. (RFC-0012)
