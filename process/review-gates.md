@@ -31,6 +31,8 @@ Each maps to a template in [`../templates/`](../templates/).
 
 A gate passes when its owner approves, or when the author documents **"N/A — because …"** and no reviewer disputes it during FCP. Unaddressed gates are blocking objections by default.
 
+**During the bootstrap period** (a domain with no seated gate owners, [RFC-0012](../rfcs/0012-interim-review-process.md)): the gates are unchanged in *what* they ask, but the owner who would answer them does not exist. The author answers each gate **adversarially** in the [interim self-review](../templates/interim-self-review-template.md), and an [independent adversarial pass](interim-review.md#2-the-interim-acceptance-checklist) probes those answers. T3 changes still require the filled security/performance/testing artifacts — those are not waived, only differently signed off — and every such acceptance is ledgered for real re-review before v1.0. This is explicitly weaker than the named owners and is recorded as such.
+
 ## Automation
 
 CI enforces the mechanical subset: template completeness, glossary coverage, link integrity, diagram rendering, and RFC/ADR cross-reference validity. Human gates are recorded as PR review approvals from the designated owners.
