@@ -11,6 +11,7 @@
 | [`versioning-and-stability.md`](versioning-and-stability.md) | Status labels, SemVer for the spec, and stability guarantees. |
 | [`interim-review.md`](interim-review.md) | **Bootstrap-period** substitute for the full quorum while the project is unstaffed ([RFC-0012](../rfcs/0012-interim-review-process.md)). |
 | [`interim-acceptance-ledger.md`](interim-acceptance-ledger.md) | The standing re-review queue of everything accepted under interim rules. |
+| [`v1.0-readiness.md`](v1.0-readiness.md) | Per-Book tracker of the ROADMAP Phase 2 v1.0 gate (ledger cleared, independent reviewers, blocking objections). |
 
 ## Choosing an instrument
 

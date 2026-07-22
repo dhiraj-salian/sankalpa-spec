@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Security Domain Lead |
 | **Created** | 2026-07-16 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | — · re-review tracked in the [interim-acceptance ledger](../process/interim-acceptance-ledger.md) |
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0010 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011). Reinforces the secret-freedom of the RFC-0002 reasoning ledger and composes with RFC-0005 (secret materialization stability).
 

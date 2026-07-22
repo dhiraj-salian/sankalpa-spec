@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Security Domain Lead |
 | **Created** | 2026-07-16 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | — · re-review tracked in the [interim-acceptance ledger](../process/interim-acceptance-ledger.md) |
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0005 reserved; open for review by the Security Domain Lead and Reviewers. Second hardening batch (0005–0011). Amends the determinism guarantee reflected from RFC-0002 (now normative in Book 01 §05 and Book 06 §03); builds on RFC-0002's replay modes (reconstruction vs. re-execution) and touches RFC-0004's `CompensationFailed` condition.
 

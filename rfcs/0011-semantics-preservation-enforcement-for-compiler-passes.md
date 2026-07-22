@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Compiler/Runtime Domain Lead |
 | **Created** | 2026-07-16 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | — · re-review tracked in the [interim-acceptance ledger](../process/interim-acceptance-ledger.md) |
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0011 reserved; open for review by the Compiler/Runtime Domain Lead and Reviewers. Second hardening batch (0005–0011). Repairs the backstop RFC-0003's determinization safety gates rely on. Note: §6 is a breaking change to the pass contract (staged migration, §13).
 

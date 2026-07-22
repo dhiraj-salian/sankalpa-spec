@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Knowledge Domain Lead |
 | **Created** | 2026-07-16 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | — · re-review tracked in the [interim-acceptance ledger](../process/interim-acceptance-ledger.md) |
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0006 reserved; open for review by the Knowledge Domain Lead and Reviewers. Second hardening batch (0005–0011); first Knowledge-domain finding, independent of the others.
 

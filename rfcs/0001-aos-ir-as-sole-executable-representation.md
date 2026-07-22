@@ -7,7 +7,7 @@
 | **Domain / Book** | AOS IR & Compiler / Books 04–05 |
 | **Shepherd** | Compiler Domain Lead |
 | **Created** | 2026-07-14 |
-| **Tracking issue** | TBD |
+| **Tracking issue** | — · re-review tracked in the [interim-acceptance ledger](../process/interim-acceptance-ledger.md) |
 
 ## 1. Executive Summary
 Sankalpa defines **AOS IR** (Agent Operating System Intermediate Representation) as the *only* representation that may be executed. Natural language, planner prompts, and model outputs are never executed directly; they are compiled — through a High IR and a Low IR — into runtime-specific execution graphs. This RFC establishes the two-level IR as a first-class, versioned, runtime-agnostic contract sitting between non-deterministic planning and deterministic execution, mirroring the role LLVM IR plays between language front-ends and machine back-ends.

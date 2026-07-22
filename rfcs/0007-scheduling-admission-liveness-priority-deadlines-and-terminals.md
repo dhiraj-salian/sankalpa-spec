@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Kernel Domain Lead |
 | **Created** | 2026-07-16 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | — · re-review tracked in the [interim-acceptance ledger](../process/interim-acceptance-ledger.md) |
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0007 reserved; open for review by the Kernel Domain Lead and Reviewers. Second hardening batch (0005–0011). Shares the "no silent stall / explained terminal" spine with RFC-0004 (the `CompensationFailed` condition); independent of it.
 
