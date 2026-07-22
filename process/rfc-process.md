@@ -44,7 +44,7 @@ Draft ──► Proposed ──► [Review] ──► FCP(accept) ──► Acce
 4. **Propose.** Move to `Proposed`; request review from the owning Domain Lead and relevant Reviewers.
 5. **Review.** Address feedback in-thread. Update the document; do not squash away the reasoning.
 6. **Final Comment Period.** The Domain Lead calls a **10-working-day FCP** with a disposition. Blocking objections must cite concrete technical harm.
-7. **Accept.** With Domain Lead approval, ≥2 Reviewer approvals, and no unresolved blocking objection, the RFC becomes `Accepted` and merges. *(While the owning domain is unstaffed this is unsatisfiable; acceptance follows the [interim review process](interim-review.md) instead — bootstrap authority plus a cooling-off, an adversarial self-review, a recorded adversarial pass, a provenance stamp, and a ledger entry. The step is replaced, not skipped.)*
+7. **Accept.** With Domain Lead approval, ≥2 Reviewer approvals, and no unresolved blocking objection, the RFC becomes `Accepted` and merges. *(While the owning domain is unstaffed this is unsatisfiable; acceptance follows the [interim review process](interim-review.md) instead — bootstrap authority plus a cooling-off, an adversarial self-review, a recorded adversarial pass, a provenance stamp, and a ledger entry; high-stakes changes to a security invariant, the AOS IR, or the Kernel API additionally require a named outside human or are deferred (RFC-0012 §4.8). The step is replaced, not skipped. This substitution is **provisional** until RFC-0012 is accepted under its own §4.2–4.5, RFC-0012 §4.7.)*
 8. **Reflect.** Follow-up PR(s) update `spec/`, `GLOSSARY.md`, diagrams, and spawn any implementing ADRs. On completion the RFC becomes `Final`.
 
 ## Numbering & location

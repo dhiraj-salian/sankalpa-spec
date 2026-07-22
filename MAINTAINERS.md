@@ -6,6 +6,8 @@ This file is the source of truth for who holds which role. It is updated by PR w
 
 ## Bootstrap authority (interim)
 
+*Provisional — pending [RFC-0012](rfcs/0012-interim-review-process.md) reaching `Accepted` under its own §4.2–4.5 (RFC-0012 §4.7, "Adoption sequencing"). Staged in the same change.*
+
 While the roles below are unfilled, the project runs under the **interim review process** ([RFC-0012](rfcs/0012-interim-review-process.md), [`GOVERNANCE.md`](GOVERNANCE.md) §7). Acceptance authority for unstaffed domains is held **temporarily** by the founding maintainer, exercised only through RFC-0012's compensating controls and logged in the [interim-acceptance ledger](process/interim-acceptance-ledger.md). This is not a Domain Lead seat; it lapses automatically as domains are staffed (RFC-0012 §4.6).
 
 | Handle | Role | Scope | Ends when |
@@ -41,6 +43,8 @@ Each Book / subsystem has exactly one accountable Domain Lead.
 | Handle | Areas |
 |--------|-------|
 | *(added as contributors earn trust)* | — |
+
+> A reviewer seated **solely** under the founding maintainer's bootstrap authority, without endorsement from an already-independent party, is marked **(bootstrap-seated)** here. Per [RFC-0012 §4.5](rfcs/0012-interim-review-process.md), bootstrap-seated reviewers **alone** cannot clear an interim-acceptance-ledger entry or satisfy the v1.0 "two independent reviewers" gate — at least one clearing/signing reviewer must trace their seating to someone other than the bootstrap author. This is the standing guard against sock-puppet clearance of the bootstrap backlog.
 
 ## Emeritus
 
