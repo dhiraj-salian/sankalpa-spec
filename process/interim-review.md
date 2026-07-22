@@ -8,7 +8,7 @@
 
 Use the interim process for a change **iff** the change's owning domain has **no seated Domain Lead** in [`MAINTAINERS.md`](../MAINTAINERS.md). If a Domain Lead and ≥2 Reviewers are seated for that domain, the interim process does **not** apply there — use the full process.
 
-Editorial changes (typos, links, formatting) never needed the quorum and still don't: one maintainer merges, no ledger entry.
+Editorial changes (typos, links, formatting) never needed the quorum and still don't: one maintainer merges, no ledger entry. **But the tier decision is not the author's private call.** Under the full process a Domain Lead confirms the tier ([`review-gates.md`](review-gates.md)); with that seat vacant, the author proposes a tier **and records it in the PR**, and the independent adversarial pass (§2) is told the proposed tier and MAY challenge it. A pass arguing that a change classed T0/T1 "editorial" in fact alters normative meaning is raising a **blocking objection** — the change is re-tiered and takes the compensating controls its true tier demands. Down-tiering to escape the package is thus a challengeable, recorded act, not a silent exit.
 
 ## 2. The interim acceptance checklist
 
@@ -17,7 +17,8 @@ A normative change (RFC, ADR, AEP, or spec-text PR) is **Accepted under interim 
 - [ ] **Proposed** — the artifact is complete per its template (no blank/TODO sections).
 - [ ] **Cooling-off** — ≥ **3 working days** have elapsed since it reached `Proposed`, and acceptance is a *separate sitting* from drafting. *(RFC-0012 §4.2.)*
 - [ ] **Adversarial self-review filed** — the [interim self-review template](../templates/interim-self-review-template.md) is filled: every applicable review gate answered with a finding or "N/A — because …", **including the strongest case against the change**. *(§4.3.)*
-- [ ] **Independent adversarial pass recorded** — a solicited outside reader if one can be found; otherwise a documented AI adversarial pass (tool + instruction + raw findings), each finding addressed or dismissed with reason. A no-findings pass states what it looked for. *(§4.4.)*
+- [ ] **Independent adversarial pass recorded** — a solicited outside reader if one can be found; otherwise a documented AI adversarial pass (tool + verbatim instruction + **all** raw runs, not a curated one), each finding addressed or dismissed with a stated technical reason. A no-findings pass states what it looked for. *(§4.4.)*
+- [ ] **High-stakes: a named outside human** — if the change introduces or alters a **security invariant, the AOS IR, or the Kernel API**, an AI pass does **not** suffice: a named human must be recorded, the cooling-off is **10 working days**, and if no human is available the change is **`Deferred`, not accepted**. *(§4.8.)*
 - [ ] **No unresolved blocking objection** — a finding of concrete technical harm blocks acceptance until resolved.
 - [ ] **Provenance stamped** — the artifact's header carries `Reviewed under: interim process (RFC-0012)`. *(§4.5.)*
 - [ ] **Ledger entry added** — a row in [`interim-acceptance-ledger.md`](interim-acceptance-ledger.md), status `pending`. *(§4.5.)*
@@ -26,7 +27,7 @@ Only then may the founding maintainer, acting under **bootstrap authority** (RFC
 
 ## 3. The review gates, under interim rules
 
-The gates in [`review-gates.md`](review-gates.md) are unchanged in *what* they ask. What changes is *who answers them*: instead of the gate owners (who don't exist yet), the **author answers each gate adversarially in the self-review**, and the **independent adversarial pass** probes those answers. This is a weaker instrument than the named owners and is recorded as such. A T3 change (new IR op, Kernel API change, security-invariant change) still requires the filled security/performance/testing artifacts the gates demand — the interim process does not waive them, it only changes who signs them off.
+The gates in [`review-gates.md`](review-gates.md) are unchanged in *what* they ask. What changes is *who answers them*: instead of the gate owners (who don't exist yet), the **author answers each gate adversarially in the self-review**, and the **independent adversarial pass** probes those answers. This is a weaker instrument than the named owners and is recorded as such. A T3 change (new IR op, Kernel API change, security-invariant change) still requires the filled security/performance/testing artifacts the gates demand — the interim process does not waive them, it only changes who signs them off — and, per [RFC-0012 §4.8](../rfcs/0012-interim-review-process.md#48-high-stakes-changes--a-named-outside-human-or-defer), a T3 change to a **security invariant, the AOS IR, or the Kernel API** additionally requires a **named outside human** (an AI pass does not suffice) or is deferred.
 
 ## 4. Exit
 

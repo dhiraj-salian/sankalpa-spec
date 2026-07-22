@@ -59,6 +59,8 @@ No normative change merges without passing the applicable gates in [`process/rev
 
 ## 7. Interim governance during bootstrap
 
+*Provisional — pending [RFC-0012](rfcs/0012-interim-review-process.md) reaching `Accepted` under its own §4.2–4.5. Staged in the same change; this section settles (drops "provisional") when that cooling-off completes. See RFC-0012 §4.7, "Adoption sequencing" — the normative change must not go live before the instrument that legitimizes it clears its own gate.*
+
 The roles and quorum in §2 and §4 assume the project is staffed. It is not yet: [`MAINTAINERS.md`](MAINTAINERS.md) records every Domain Lead as vacant and no Steering Council, so the §4 consensus test (Domain Lead + ≥2 Reviewers) and the §8 amendment rule are currently **unsatisfiable**. Until a domain is staffed, that domain operates under the **interim review process** defined in [RFC-0012](rfcs/0012-interim-review-process.md) and [`process/interim-review.md`](process/interim-review.md):
 
 - Acceptance authority for an unstaffed domain is held **temporarily** by the founding maintainer (bootstrap authority), exercised **only** through a compensating-control package — a cooling-off period, an adversarial self-review, an independent adversarial pass, and provenance stamping — in place of the reviewers who do not yet exist.
@@ -68,5 +70,7 @@ The roles and quorum in §2 and §4 assume the project is staffed. It is not yet
 This is a founding act, adopted where §8 cannot yet be satisfied, and bound to its own supersession. See RFC-0012 §4.7 for the reasoning, disclosed rather than hidden.
 
 ## 8. Amending governance
+
+*The bootstrap carve-out in the final paragraph of this section is **provisional** — pending [RFC-0012](rfcs/0012-interim-review-process.md) acceptance under its own §4.2–4.5 (RFC-0012 §4.7).*
 
 This document is amended only by RFC, a 15-working-day FCP, and a two-thirds Steering Council supermajority. Amendments are announced project-wide. **Until a Steering Council exists**, this rule is unsatisfiable; governance is amended under the bootstrap authority of §7 (RFC-0012), and any such amendment — including RFC-0012 itself — is subject to ratification, revision, or retirement by the Council once seated.

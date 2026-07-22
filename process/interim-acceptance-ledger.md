@@ -30,3 +30,11 @@ These were accepted under *ad-hoc* pre-RFC-0012 interim practice (solo authorshi
 | 1 | [RFC-0012](../rfcs/0012-interim-review-process.md) — interim review process | Governance | *pending cooling-off* | founding maintainer (bootstrap) | AI adversarial pass (recorded in PR) | `pending` |
 
 *(RFC-0012 is itself the first artifact processed under the rules it defines. It is `Proposed`, not yet `Accepted`: its acceptance awaits the §4.2 cooling-off. The row is seeded so the ledger is live from day one.)*
+
+## Staffing-status notes (RFC-0012 §4.6)
+
+While bootstrap authority is in force, the founding maintainer records a dated note here at least every **90 days**: which domains remain unstaffed, what recruitment was attempted, and why no seat was filled. A gap in this record is a visible governance lapse — it is how "solo control in good faith while recruiting" is told apart from "solo control by neglect."
+
+| Date | Domains still unstaffed | Recruitment attempted | Next note due |
+|------|------------------------|-----------------------|---------------|
+| 2026-07-18 | all (every Domain Lead seat vacant) | *(seed: none yet — project is pre-announcement, spec not yet public)* | 2026-10-16 |
