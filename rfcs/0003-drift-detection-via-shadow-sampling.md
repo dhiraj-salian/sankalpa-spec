@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Experience Domain Lead |
 | **Created** | 2026-07-15 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | [#3](https://github.com/dhiraj-salian/sankalpa-spec/issues/3) |
 
 > Raised by the Phase 2 hardening pass. Number 0003 reserved; open for review by the Experience Domain Lead and Reviewers. Depends on RFC-0002 (reasoning ledger) for its data substrate — do not advance to Accepted ahead of 0002.
 

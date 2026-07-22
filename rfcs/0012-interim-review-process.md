@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | *Governance seat vacant — accepted under bootstrap authority this RFC defines (§4.7)* |
 | **Created** | 2026-07-18 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | PRs [#17](https://github.com/dhiraj-salian/sankalpa-spec/pull/17), [#18](https://github.com/dhiraj-salian/sankalpa-spec/pull/18); re-review tracked in the [interim-acceptance ledger](../process/interim-acceptance-ledger.md) |
 
 > This RFC changes a governance rule and therefore requires an RFC ([`rfc-process.md`](../process/rfc-process.md) §"When an RFC is required"). It is **Proposed**, not Accepted: under the very process it defines it cannot be accepted until a cooling-off period elapses (§4.2). It documents the authority under which it will then be accepted, and does not pretend that authority is the normal quorum.
 

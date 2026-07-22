@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Compiler/Runtime Domain Lead |
 | **Created** | 2026-07-15 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | [#2](https://github.com/dhiraj-salian/sankalpa-spec/issues/2) |
 
 > Raised by the Phase 2 hardening pass (adversarial review toward v1.0). Number 0002 reserved; open for review by the Compiler/Runtime Domain Lead and Reviewers.
 

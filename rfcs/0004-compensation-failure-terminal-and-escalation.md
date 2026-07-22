@@ -8,7 +8,7 @@
 | **Shepherd (Domain Lead)** | Runtime Domain Lead |
 | **Created** | 2026-07-15 |
 | **Supersedes / Superseded by** | — |
-| **Tracking issue** | TBD |
+| **Tracking issue** | [#4](https://github.com/dhiraj-salian/sankalpa-spec/issues/4) |
 
 > Raised by the Phase 2 hardening pass. Number 0004 reserved; open for review by the Runtime Domain Lead and Reviewers. Shares a replay boundary with RFC-0002 (§4.5).
 
