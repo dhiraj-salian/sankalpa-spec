@@ -2,12 +2,13 @@
 
 *Status: Living document · Defined by: [RFC-0012](../rfcs/0012-interim-review-process.md) §4.5.*
 
-> Every artifact accepted under the [interim review process](interim-review.md) is recorded here as a **standing re-review obligation**. An entry is `pending` until a **seated Reviewer or Domain Lead** (never the founding maintainer acting under bootstrap authority) re-reviews it; it then becomes `cleared` with a date and reviewer. **A Book with any `pending` ledger entry touching it cannot pass the Phase 2 v1.0 gate** ([`ROADMAP.md`](../ROADMAP.md): two independent reviewers per Book). This ledger is the debt record of the bootstrap period — visible, so it can be paid.
+> Every artifact accepted under the [interim review process](interim-review.md) is recorded here as a **standing re-review obligation**. An entry is `pending` until it is re-reviewed by either a **seated Reviewer or Domain Lead** (→ `cleared (human)`) or an **independent agent review quorum** ([RFC-0013](../rfcs/0013-agent-reviewers-and-the-agent-review-quorum.md) §4.4, → `cleared (agent)`) — in both cases never the founding maintainer's own judgment, and for an agent quorum never the authoring session. **A Book with any `pending` ledger entry touching it cannot pass the Phase 2 v1.0 gate** ([`ROADMAP.md`](../ROADMAP.md): two independent reviewers per Book, satisfiable by an agent quorum with disclosed provenance, RFC-0013 §4.6). This ledger is the debt record of the bootstrap period — visible, so it can be paid.
 
 ## How to read the status
 
 - **`pending`** — accepted under interim rules; owes an independent re-review before v1.0.
-- **`cleared`** — a seated reviewer has re-reviewed it; records who and when.
+- **`cleared (human)`** — a seated human Reviewer/Domain Lead has re-reviewed it; records who and when.
+- **`cleared (agent)`** — an independent agent review quorum (RFC-0013 §4.4) has re-reviewed it; records the reviewers (model ids/versions), panel size, and a link to the transcript. **Upgradeable**: a later human review may re-clear it to `cleared (human)`.
 - **`superseded`** — replaced by a later artifact (linked); the successor carries any remaining obligation.
 
 ## Grandfathered class — accepted before RFC-0012
@@ -28,6 +29,7 @@ These were accepted under *ad-hoc* pre-RFC-0012 interim practice (solo authorshi
 | # | Artifact | Domain | Accepted | Authority | Adversarial pass | Re-review |
 |---|----------|--------|----------|-----------|------------------|-----------|
 | 1 | [RFC-0012](../rfcs/0012-interim-review-process.md) — interim review process | Governance | *pending cooling-off* | founding maintainer (bootstrap) | AI adversarial pass (recorded in PR) | `pending` |
+| 2 | [RFC-0013](../rfcs/0013-agent-reviewers-and-the-agent-review-quorum.md) — agent reviewers & quorum | Governance | *pending cooling-off* | founding maintainer (bootstrap) | agent review quorum (RFC-0013 §4.8, recorded in PR) | `pending` |
 
 *(RFC-0012 is itself the first artifact processed under the rules it defines. It is `Proposed`, not yet `Accepted`: its acceptance awaits the §4.2 cooling-off. The row is seeded so the ledger is live from day one.)*
 
