@@ -21,6 +21,7 @@ RFCs are substantial design proposals — the primary vehicle for evolving Sanka
 | [0010](0010-runtime-observability-egress-verification.md) | Runtime observability egress verification — enforcing secret-freedom where the only plaintext secret exists | Final |
 | [0011](0011-semantics-preservation-enforcement-for-compiler-passes.md) | Semantics-preservation enforcement for compiler passes — giving IR-P10 a mechanism | Final |
 | [0012](0012-interim-review-process.md) | Interim review process for the bootstrap period — bootstrap authority, compensating controls, and a re-review ledger | Proposed |
+| [0013](0013-agent-reviewers-and-the-agent-review-quorum.md) | Agent reviewers and the agent review quorum — an independent agent panel may clear the ledger and satisfy the v1.0 gate, with disclosed provenance (amends RFC-0012 §4.4/§4.5/§4.8) | Proposed |
 
 > RFC-0002–0004 are the Phase 2 hardening set, **Final 2026-07-15** — accepted (FCP accept disposition, called and concluded the same day) and reflected into `spec/` and the Glossary in the same change. Solo-maintainer repo: the 10-working-day FCP window was shortened and the ≥2-Reviewer gate waived, both recorded in each RFC header for auditability. 0002 and 0003 were accepted together so 0003 does not precede its 0002 dependency; 0004 shares a replay boundary with 0002 (§4.5) and adds the `RemediationTask` core kind. Reflection touched Books 01–06 and 10 plus the Glossary and CHANGELOG.
 >

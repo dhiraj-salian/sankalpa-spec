@@ -46,6 +46,10 @@ Each Book / subsystem has exactly one accountable Domain Lead.
 
 > A reviewer seated **solely** under the founding maintainer's bootstrap authority, without endorsement from an already-independent party, is marked **(bootstrap-seated)** here. Per [RFC-0012 §4.5](rfcs/0012-interim-review-process.md), bootstrap-seated reviewers **alone** cannot clear an interim-acceptance-ledger entry or satisfy the v1.0 "two independent reviewers" gate — at least one clearing/signing reviewer must trace their seating to someone other than the bootstrap author. This is the standing guard against sock-puppet clearance of the bootstrap backlog.
 
+## Agent reviewers (interim)
+
+Per [RFC-0013](rfcs/0013-agent-reviewers-and-the-agent-review-quorum.md), an **independent agent review quorum** may clear ledger entries and satisfy the v1.0 two-reviewer gate while a domain is unstaffed by humans. To count, agent reviewers MUST be independent (RFC-0013 §4.2): **≥2** in distinct cold sessions, of **distinct model families** (or a disclosed third), never the authoring session, with model id/version, verbatim prompt, all runs, and findings recorded. High-stakes changes (security invariant / AOS IR / Kernel API) require a **≥3-agent, ≥2-family** panel (RFC-0013 §4.5). Agent reviewers are **not** a role in the tables above: they supply review, not accountability, and do **not** fill a Domain Lead or Steering Council seat or end the bootstrap period (RFC-0013 §4.7). An agent-cleared obligation is recorded `cleared (agent)` and remains upgradeable to `cleared (human)`.
+
 ## Emeritus
 
 Former maintainers who have stepped back. Listed with gratitude; retain no merge rights.
